@@ -25,8 +25,8 @@
   --leave-text: #5b6170;
   --absent: #f8b4b4;
   --absent-text: #8a1111;
-  --came: #fcd9a8;
-  --came-text: #7a4300;
+  --came: #bfe8c9;
+  --came-text: #14532d;
   --radius: 12px;
   --tabbar-h: 56px;
   --topbar-h: 48px;
@@ -61,8 +61,8 @@
     --leave-text: #8b919c;
     --absent: #6b1f1f;
     --absent-text: #ffd4d4;
-    --came: #6b4a12;
-    --came-text: #ffe2b5;
+    --came: #1d4a2c;
+    --came-text: #c8f2d4;
     color-scheme: dark;
   }
 }

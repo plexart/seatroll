@@ -123,7 +123,7 @@ const IMAGE_FILLS = {
   expected: '#eef4fb',
   leave: '#d1d5db',
   absent: '#f8b4b4',
-  came: '#fcd9a8',
+  came: '#bfe8c9',
   empty: '#ffffff',
 };
 
