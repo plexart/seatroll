@@ -247,14 +247,16 @@ function rangeTab(draw) {
         ),
     ].join('\n');
 
+  // Nothing to show or export for a range without sessions (e.g. a future month).
+  if (!report.sessions.length)
+    return h('div', {}, picker, h('p', { class: 'empty' }, t('report.none')));
+
   return h(
     'div',
     {},
     picker,
     h('h2', {}, t('report.sessions', { n: report.sessions.length })),
-    report.sessions.length
-      ? table(sessionHeader, sessionRows)
-      : h('p', { class: 'empty' }, t('report.none')),
+    table(sessionHeader, sessionRows),
     h('h2', {}, t('report.students')),
     table(studentHeader, studentRows, (row) => (row[2] > 0 ? 'row-absent' : '')),
     h(
