@@ -11,10 +11,11 @@ Demo: open the site, pick **示例班级** and enter the password `demo`.
 - **Classes** — `data/classes.json` lists the classes; each has its own encrypted data file
   and password. The chosen class and its password are remembered in the browser; tap the class
   name in the top bar to switch.
-- **Check-in** — shows the current time and the session it falls in, then draws the expected
+- **Check-in** — shows the current time and the listed session it falls in (or the next one), then draws the expected
   seat chart: the chart in effect at that session, with students on leave greyed out. Tap a
-  seat to mark an expected student absent, or a student on leave as present after all. The
-  date and slot can be changed to look at or fill in another session. Copy a text summary for
+  seat to mark an expected student absent, or a student on leave as present after all. Only
+  listed sessions (see [Data workflow](#data-workflow)) can be picked, so a check-in can't land
+  on a session that doesn't exist. Copy a text summary for
   the group chat, save an image, or export the check-in.
 - **Two views** — _podium view_ (default) is what a volunteer standing at the podium sees:
   podium at the bottom, row 1 next to it, the students' right on the left. _Seat view_ is what

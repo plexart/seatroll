@@ -8,7 +8,7 @@ import { copyAndShareText, h, saveFile, setChildren, toast } from '../dom.js';
 import { formatDate, sessionLabel } from '../format.js';
 import { t } from '../i18n.js';
 import { renderSeatGrid } from '../render/seatgrid.js';
-import { resolveSlot } from '../sessions.js';
+import { currentSession, listSessions } from '../sessions.js';
 import { commit, isUnmerged, onChange, prefs, state } from '../store.js';
 import {
   exportCollections,
@@ -24,14 +24,15 @@ import {
 // page switches so a volunteer filling in an old session does not lose their place.
 let pinned = null;
 
-function currentSession() {
-  if (pinned) return pinned;
+/** The pinned session if it is still listed, otherwise the one for the current time. */
+function shownSession(list) {
+  if (pinned && list.some((s) => s.date === pinned.date && s.slot.id === pinned.slotId)) {
+    return pinned;
+  }
+  pinned = null;
   const d = new Date();
-  const date = toDateStr(d);
-  return {
-    date,
-    slotId: resolveSlot(state.data.slots, state.data.schedule, date, toTimeStr(d)).id,
-  };
+  const s = currentSession(list, toDateStr(d), toTimeStr(d));
+  return s && { date: s.date, slotId: s.slot.id };
 }
 
 export function renderCheckin(container) {
@@ -44,7 +45,17 @@ export function renderCheckin(container) {
   const timer = setInterval(tick, 1000);
 
   const draw = () => {
-    const { date, slotId } = currentSession();
+    const list = listSessions(state.data);
+    const shown = shownSession(list);
+    if (!shown) {
+      setChildren(
+        container,
+        h('section', { class: 'card session-card' }, clock),
+        h('p', { class: 'empty' }, t('checkin.noSessions')),
+      );
+      return;
+    }
+    const { date, slotId } = shown;
     const summary = sessionSummary(state.data, date, slotId);
     const names = studentMap(state.data);
 
@@ -71,7 +82,7 @@ export function renderCheckin(container) {
           : null,
       ),
       h('div', { class: 'session-title' }, sessionLabel(date, summary.slot)),
-      sessionPicker(date, slotId, (s) => {
+      sessionPicker(list, date, slotId, (s) => {
         pinned = s;
         draw();
       }),

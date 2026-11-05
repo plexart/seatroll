@@ -86,6 +86,7 @@
 
   "checkin.pinned": "查看指定时间",
   "checkin.backToNow": "回到现在",
+  "checkin.noSessions": "还没有课次，请联系管理员添加。",
   "checkin.noChart": "这个时间没有生效的座位表，请先在“座位”页添加。",
   "checkin.hint": "点座位：应到未到 ↔ 缺勤；请假的人到了 ↔ 销假",
   "checkin.saved": "已签到，更新于 {time}",

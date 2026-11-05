@@ -6,7 +6,6 @@ import { countRecords } from '../data.js';
 import { t } from '../i18n.js';
 import { formatTimestamp, sessionLabel } from '../format.js';
 import { chartImage } from '../render/image.js';
-import { sortSlots } from '../sessions.js';
 import { exportChangeset, prefs, state } from '../store.js';
 
 /** Segmented control. options: [{ value, label }]. */
@@ -45,22 +44,32 @@ export function viewToggle(onChange) {
   );
 }
 
-/** Date input plus slot select. onChange({ date, slotId }). */
-export function sessionPicker(date, slotId, onChange) {
-  const dateInput = h('input', {
-    type: 'date',
-    value: date,
-    onChange: () =>
-      dateInput.value && onChange({ date: dateInput.value, slotId: slotSelect.value }),
-  });
-  const slotSelect = h(
+/**
+ * Select of the listed sessions (from listSessions) between ‹ › buttons for the previous and
+ * next session. onChange({ date, slotId }).
+ */
+export function sessionPicker(list, date, slotId, onChange) {
+  const index = list.findIndex((s) => s.date === date && s.slot.id === slotId);
+  const go = (i) => onChange({ date: list[i].date, slotId: list[i].slot.id });
+  const select = h(
     'select',
-    { onChange: () => onChange({ date: dateInput.value, slotId: slotSelect.value }) },
-    sortSlots(state.data.slots).map((s) =>
-      h('option', { value: s.id, selected: s.id === slotId }, `${s.start}–${s.end}`),
+    { onChange: () => go(Number(select.value)) },
+    list.map((s, i) =>
+      h('option', { value: String(i), selected: i === index }, sessionLabel(s.date, s.slot)),
     ),
   );
-  return h('div', { class: 'session-picker' }, dateInput, slotSelect);
+  const arrow = (delta, label) =>
+    h(
+      'button',
+      {
+        type: 'button',
+        class: 'btn small',
+        disabled: !list[index + delta],
+        onClick: () => go(index + delta),
+      },
+      label,
+    );
+  return h('div', { class: 'session-picker' }, arrow(-1, '‹'), select, arrow(1, '›'));
 }
 
 export function badge(text, kind = '') {
