@@ -8,11 +8,12 @@ import {
   sessionSummary,
   studentMap,
 } from '../data.js';
-import { addDays, toDateStr } from '../dates.js';
+import { monthRange, toDateStr, toTimeStr, weekRange } from '../dates.js';
 import { copyText, h, saveFile, setChildren, toast } from '../dom.js';
 import { formatDate, sessionLabel, slotPart } from '../format.js';
 import { t } from '../i18n.js';
 import { tableImage } from '../render/image.js';
+import { defaultLeaveWeek } from '../sessions.js';
 import { onChange, state } from '../store.js';
 import { exportName, segmented, sessionImage, sessionText } from './common.js';
 
@@ -22,9 +23,10 @@ let range = null;
 let leaveRange = null;
 
 export function renderReport(container) {
-  const today = toDateStr(new Date());
-  range ??= { from: addDays(today, -27), to: today };
-  leaveRange ??= { from: addDays(today, -7), to: addDays(today, 21) };
+  const now = new Date();
+  const today = toDateStr(now);
+  range ??= monthRange(today);
+  leaveRange ??= weekRange(defaultLeaveWeek(state.data.slots, today, toTimeStr(now)));
 
   const draw = () => {
     const body =
@@ -73,7 +75,8 @@ const imageButton = (getBlob, kind, label = t('common.image')) =>
     label,
   );
 
-function rangePicker(value, onChange) {
+/** Two date inputs between ‹ › buttons; `shift(±1)` gives the previous / next range. */
+function rangePicker(value, onChange, shift) {
   const from = h('input', { type: 'date', value: value.from });
   const to = h('input', { type: 'date', value: value.to });
   const update = () => {
@@ -82,7 +85,21 @@ function rangePicker(value, onChange) {
   };
   from.addEventListener('change', update);
   to.addEventListener('change', update);
-  return h('div', { class: 'session-picker' }, from, h('span', {}, '–'), to);
+  const arrow = (delta, label) =>
+    h(
+      'button',
+      { type: 'button', class: 'btn small', onClick: () => onChange(shift(delta)) },
+      label,
+    );
+  return h(
+    'div',
+    { class: 'session-picker' },
+    arrow(-1, '‹'),
+    from,
+    h('span', {}, '–'),
+    to,
+    arrow(1, '›'),
+  );
 }
 
 function nameSection(title, list, render, kind) {
@@ -170,10 +187,14 @@ function sessionTab(draw) {
 
 function rangeTab(draw) {
   const report = rangeReport(state.data, range.from, range.to);
-  const picker = rangePicker(range, (r) => {
-    range = r;
-    draw();
-  });
+  const picker = rangePicker(
+    range,
+    (r) => {
+      range = r;
+      draw();
+    },
+    (delta) => monthRange(range.from, delta),
+  );
   const sessionRows = report.sessions.map((s) => [
     formatDate(s.date),
     slotPart(s.slot),
@@ -262,10 +283,14 @@ function rangeTab(draw) {
 
 function leaveTab(draw) {
   const overview = leaveOverview(state.data, leaveRange.from, leaveRange.to);
-  const picker = rangePicker(leaveRange, (r) => {
-    leaveRange = r;
-    draw();
-  });
+  const picker = rangePicker(
+    leaveRange,
+    (r) => {
+      leaveRange = r;
+      draw();
+    },
+    (delta) => weekRange(leaveRange.from, delta),
+  );
   const line = (s) => (s.note ? `${s.name}（${s.note}）` : s.name);
   const text = () =>
     [

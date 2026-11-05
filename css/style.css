@@ -453,8 +453,20 @@ textarea {
   flex: 1;
   min-width: 0;
 }
-.session-picker > span {
+.session-picker > span,
+.session-picker > .btn {
   flex: 0 0 auto;
+}
+.session-picker:has(> .btn) {
+  gap: 4px;
+}
+.session-picker:has(> .btn) > input {
+  padding-inline: 6px;
+}
+.session-picker > .btn {
+  align-self: stretch;
+  padding-inline: 8px;
+  font-size: 18px;
 }
 
 .stats {

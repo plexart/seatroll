@@ -41,3 +41,17 @@ export function isDateStr(str) {
 export function isTimestamp(str) {
   return typeof str === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str);
 }
+
+/** The whole month containing `date`, moved by `offset` months: { from, to }. */
+export function monthRange(date, offset = 0) {
+  const d = parseDate(date);
+  const y = d.getFullYear();
+  const m = d.getMonth() + offset;
+  return { from: toDateStr(new Date(y, m, 1)), to: toDateStr(new Date(y, m + 1, 0)) };
+}
+
+/** The Monday-to-Sunday week containing `date`, moved by `offset` weeks: { from, to }. */
+export function weekRange(date, offset = 0) {
+  const from = addDays(date, 7 * offset - ((weekdayOf(date) + 6) % 7));
+  return { from, to: addDays(from, 6) };
+}
