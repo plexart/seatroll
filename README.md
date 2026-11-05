@@ -18,7 +18,8 @@ Demo: open the site, pick **示例班级** and enter the password `demo`.
   the group chat, save an image, or export the check-in.
 - **Two views** — _podium view_ (default) is what a volunteer standing at the podium sees:
   podium at the bottom, row 1 next to it, the students' right on the left. _Seat view_ is what
-  a student sitting down sees: podium on top. Column numbers are shown on top in both views.
+  a student sitting down sees: podium on top. Column numbers are on top in the podium view
+  and at the bottom in the seat view, away from the podium row.
 - **Seat charts** — each chart has an effective time; the latest one in effect is used. The
   editor can shift everyone forward/back one row or left/right one column (wrapping around;
   seats in the podium row are never moved), and place students by tapping: tap a student, then

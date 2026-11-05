@@ -280,8 +280,9 @@ export function toggleFrontSeat(chart, c) {
  * podium row when the column count is even). Podium-row cells carry `span: [start, end]`, their
  * horizontal extent in half-column units (screen column i covers [2i, 2i + 2]).
  * Every row starts and ends with a 'rowLabel' (or 'corner'), so the chart is symmetric.
- * Seat view: podium on top, the students' left on the left. Podium view: rotated 180 degrees,
- * except that the column labels stay on top. Column numbers follow `colNumber`.
+ * Seat view: podium on top, the students' left on the left, column labels at the bottom (with
+ * an even column count the podium row is half a column over, so labels above it would not line
+ * up). Podium view: rotated 180 degrees, column labels on top. Column numbers follow `colNumber`.
  */
 export function layout(chart, view) {
   const colOrder = [...Array(chart.cols).keys()];
@@ -317,5 +318,5 @@ export function layout(chart, view) {
     { kind: 'corner' },
   ];
   if (view === 'podium') return [labels, ...mainRows.reverse(), frontRow];
-  return [labels, frontRow, ...mainRows];
+  return [frontRow, ...mainRows, labels];
 }
