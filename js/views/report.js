@@ -15,7 +15,7 @@ import { t } from '../i18n.js';
 import { tableImage } from '../render/image.js';
 import { listSessions, nextSessionDate } from '../sessions.js';
 import { onChange, state } from '../store.js';
-import { exportName, segmented, sessionImage, sessionText } from './common.js';
+import { exportName, segmented, sessionImage, sessionSelect, sessionText } from './common.js';
 
 let tab = 'session';
 let session = null;
@@ -123,22 +123,12 @@ function sessionTab(draw) {
   if (!list.some((s) => s.date === session?.date && s.slot === session?.slot)) session = list[0];
   const summary = sessionSummary(state.data, session.date, session.slot);
   const names = studentMap(state.data);
-  const select = h(
-    'select',
-    {
-      onChange: () => {
-        session = list[Number(select.value)];
-        draw();
-      },
-    },
-    list.map((s, i) =>
-      h(
-        'option',
-        { value: String(i), selected: s.date === session.date && s.slot === session.slot },
-        sessionLabel(s.date, findSlot(state.data, s.slot)),
-      ),
-    ),
-  );
+  const items = list.map((s) => ({ date: s.date, slot: findSlot(state.data, s.slot) }));
+  const index = list.findIndex((s) => s.date === session.date && s.slot === session.slot);
+  const select = sessionSelect(items, index, (i) => {
+    session = list[i];
+    draw();
+  });
   const picker = h('div', { class: 'session-picker' }, select);
   if (!summary.chart) return h('div', {}, picker, h('p', { class: 'empty' }, t('checkin.noChart')));
   return h(

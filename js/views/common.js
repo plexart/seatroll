@@ -4,7 +4,7 @@ import { getSeat } from '../chart.js';
 import { h, saveFile, toast } from '../dom.js';
 import { countRecords } from '../data.js';
 import { t } from '../i18n.js';
-import { formatTimestamp, sessionLabel } from '../format.js';
+import { formatDate, formatTimestamp, sessionLabel, slotPart } from '../format.js';
 import { chartImage } from '../render/image.js';
 import { exportChangeset, prefs, state } from '../store.js';
 
@@ -45,19 +45,71 @@ export function viewToggle(onChange) {
 }
 
 /**
- * Select of the listed sessions (from listSessions) between ‹ › buttons for the previous and
- * next session. onChange({ date, slotId }).
+ * Session chooser: a button showing the current session that opens a bottom sheet listing
+ * `items` ([{ date, slot }]) grouped by date. Used instead of a native <select>, whose
+ * Android popup ignores the page styles, wraps every label and shows only a few options.
+ * onPick(i) is called with the chosen index (only when it differs from `index`).
+ */
+export function sessionSelect(items, index, onPick) {
+  const current = items[index];
+  const open = () => {
+    const rows = [];
+    const groups = [];
+    items.forEach((s, i) => {
+      if (s.date !== items[i - 1]?.date) {
+        groups.push(h('h3', { class: 'sheet-date' }, formatDate(s.date)));
+      }
+      const row = h(
+        'button',
+        {
+          type: 'button',
+          class: 'sheet-row',
+          'aria-current': i === index ? 'true' : null,
+          autofocus: i === index,
+          onClick: () => {
+            dialog.close();
+            if (i !== index) onPick(i);
+          },
+        },
+        h('span', {}, slotPart(s.slot)),
+        h('span', { class: 'sheet-time' }, `${s.slot.start}–${s.slot.end}`),
+      );
+      rows.push(row);
+      groups.push(row);
+    });
+    const dialog = h(
+      'dialog',
+      {
+        class: 'sheet',
+        // A click on the dialog itself (not its content) is a click on the backdrop.
+        onClick: (e) => e.target === dialog && dialog.close(),
+        onClose: () => dialog.remove(),
+      },
+      h(
+        'div',
+        { class: 'sheet-body' },
+        h('div', { class: 'sheet-title' }, t('session.choose')),
+        groups,
+      ),
+    );
+    document.body.append(dialog);
+    dialog.showModal();
+    rows[index]?.scrollIntoView({ block: 'center' });
+  };
+  return h(
+    'button',
+    { type: 'button', class: 'select-trigger', 'aria-haspopup': 'dialog', onClick: open },
+    h('span', {}, current ? sessionLabel(current.date, current.slot) : ''),
+  );
+}
+
+/**
+ * Session chooser for the listed sessions (from listSessions) between ‹ › buttons for the
+ * previous and next session. onChange({ date, slotId }).
  */
 export function sessionPicker(list, date, slotId, onChange) {
   const index = list.findIndex((s) => s.date === date && s.slot.id === slotId);
   const go = (i) => onChange({ date: list[i].date, slotId: list[i].slot.id });
-  const select = h(
-    'select',
-    { onChange: () => go(Number(select.value)) },
-    list.map((s, i) =>
-      h('option', { value: String(i), selected: i === index }, sessionLabel(s.date, s.slot)),
-    ),
-  );
   const arrow = (delta, label) =>
     h(
       'button',
@@ -69,7 +121,13 @@ export function sessionPicker(list, date, slotId, onChange) {
       },
       label,
     );
-  return h('div', { class: 'session-picker' }, arrow(-1, '‹'), select, arrow(1, '›'));
+  return h(
+    'div',
+    { class: 'session-picker' },
+    arrow(-1, '‹'),
+    sessionSelect(list, index, go),
+    arrow(1, '›'),
+  );
 }
 
 export function badge(text, kind = '') {

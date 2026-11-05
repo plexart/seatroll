@@ -84,6 +84,8 @@
   "stat.absent": "缺勤",
   "stat.came": "销假",
 
+  "session.choose": "选择课次",
+
   "checkin.noSessions": "还没有课次，请联系管理员添加。",
   "checkin.noChart": "这个时间没有生效的座位表，请先在“座位”页添加。",
   "checkin.hint": "点座位：应到未到 ↔ 缺勤；请假的人到了 ↔ 销假",
