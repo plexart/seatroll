@@ -12,6 +12,8 @@
     "format:check": "prettier --check .",
     "merge": "node scripts/merge.mjs",
     "new-class": "node scripts/new-class.mjs",
+    "add-sessions": "node scripts/sessions.mjs add",
+    "remove-sessions": "node scripts/sessions.mjs remove",
     "decrypt": "node scripts/decrypt.mjs",
     "passwd": "node scripts/passwd.mjs",
     "demo": "node scripts/demo.mjs",

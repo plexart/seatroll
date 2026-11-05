@@ -3,6 +3,7 @@
 // `npm run new-class` and filled from the app.
 import { assign, createChart, frontKey, mainKey, shiftRows } from '../js/chart.js';
 import { emptyData } from '../js/data.js';
+import { addSessions, expandSessions } from '../js/sessions.js';
 import { readClasses, writeClasses, writeClassData } from './lib/classes.mjs';
 
 const CLASS = { id: 'demo', name: '示例班级', file: 'data/demo.enc.json' };
@@ -62,6 +63,16 @@ data.seatCharts = [
   { ...chart, updatedAt: STAMP },
   { ...second, updatedAt: STAMP },
 ];
+
+// The regular sessions of the autumn term, plus a holiday make-up day (National Day).
+data.sessions = addSessions(
+  [],
+  [
+    ...expandSessions(data.schedule, '2026-09-04', '2027-01-16'),
+    ...expandSessions(data.schedule, '2026-10-05', '2026-10-05', ['am', 'pm']),
+  ],
+  data.slots,
+).sessions;
 
 const leave = (date, slot, ids, note) => ({
   date,

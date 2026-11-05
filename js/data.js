@@ -4,6 +4,7 @@
 // data = { version: 2, slots, schedule, students, seatCharts, leaves, attendance }
 //   slots:      [{ id, start, end }]          times of day (see sessions.js)
 //   schedule:   [{ weekday, slot }]           regular weekly sessions
+//   sessions:   [{ date, slot }]              every real session; maintained by the scripts
 //   students:   [{ id, name, archived?, updatedAt }]
 //   seatCharts: [chart (see chart.js)]
 //   leaves:     [{ date, slot, students: [{ id, note? }], updatedAt }]
@@ -31,6 +32,7 @@ export function emptyData() {
     version: DATA_VERSION,
     slots: DEFAULT_SLOTS,
     schedule: DEFAULT_SCHEDULE,
+    sessions: [],
     students: [],
     seatCharts: [],
     leaves: [],
@@ -64,6 +66,7 @@ export function upgradeData(data) {
     version: DATA_VERSION,
     slots: DEFAULT_SLOTS,
     schedule: DEFAULT_SCHEDULE,
+    sessions: data.sessions ?? [],
   };
 }
 

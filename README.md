@@ -39,6 +39,19 @@ Demo: open the site, pick **示例班级** and enter the password `demo`.
 
 ## Data workflow
 
+Only listed sessions can be checked in or have leave, so the maintainer adds each week's
+sessions a few days ahead, and holiday make-up lessons when they are announced:
+
+```sh
+npm run add-sessions                                  # next week's regular sessions, all classes
+npm run add-sessions -- 2026-12-31 am pm              # a make-up day (morning, afternoon)
+npm run add-sessions -- g3-23 2026-11-06..2027-01-23  # a whole term for one class
+git add data && git commit -m "Add sessions" && git push
+```
+
+Slots are `am`, `pm` and `eve`; the regular schedule (Friday `eve`, Saturday `am` and `pm`)
+is stored in each class's data.
+
 The site has no server, so changes travel as files:
 
 1. Edits made in the app (students, seat charts, leave, check-ins) are kept in the browser
@@ -61,17 +74,19 @@ The site has no server, so changes travel as files:
 
 Requires Node 20+. Run `npm install` once.
 
-| Command                              | Description                                                        |
-| ------------------------------------ | ------------------------------------------------------------------ |
-| `npm run new-class -- <id> <name>`   | Create a class: an empty encrypted file and a `classes.json` entry |
-| `npm run merge -- <file.json> [...]` | Merge exported changesets into the encrypted data files            |
-| `npm run decrypt -- <id>`            | Write the decrypted data to `private/<id>.json` (gitignored)       |
-| `npm run passwd -- <id>`             | Re-encrypt a class with a new password                             |
-| `npm run demo`                       | Regenerate the demo class from made-up names                       |
-| `npm run icons`                      | Render the PNG icons from `icons/icon.svg`                         |
-| `npm test`                           | Unit tests (`node --test`)                                         |
-| `npm run format` / `format:check`    | Format / check the code with Prettier                              |
-| `npm run serve`                      | Serve the app at http://localhost:8000                             |
+| Command                                                   | Description                                                        |
+| --------------------------------------------------------- | ------------------------------------------------------------------ |
+| `npm run new-class -- <id> <name>`                        | Create a class: an empty encrypted file and a `classes.json` entry |
+| `npm run add-sessions -- [id] [date[..date]] [slot ...]`  | Add sessions (default: next week's, all classes)                   |
+| `npm run remove-sessions -- [id] date[..date] [slot ...]` | Remove sessions (records are kept, hidden)                         |
+| `npm run merge -- <file.json> [...]`                      | Merge exported changesets into the encrypted data files            |
+| `npm run decrypt -- <id>`                                 | Write the decrypted data to `private/<id>.json` (gitignored)       |
+| `npm run passwd -- <id>`                                  | Re-encrypt a class with a new password                             |
+| `npm run demo`                                            | Regenerate the demo class from made-up names                       |
+| `npm run icons`                                           | Render the PNG icons from `icons/icon.svg`                         |
+| `npm test`                                                | Unit tests (`node --test`)                                         |
+| `npm run format` / `format:check`                         | Format / check the code with Prettier                              |
+| `npm run serve`                                           | Serve the app at http://localhost:8000                             |
 
 Class passwords are kept in `.env` (gitignored), one line per class, so scripts never ask
 twice:
@@ -158,6 +173,7 @@ tests/                  node:test unit tests
   version: 2,
   slots: [{ id: 'am', start: '08:00', end: '12:00' }, ...],   // am, pm, eve: times of day
   schedule: [{ weekday: 5, slot: 'eve' }, ...],                // regular weekly sessions
+  sessions: [{ date, slot }],                                  // every real session (scripts)
   students: [{ id, name, archived?, updatedAt }],
   seatCharts: [{
     id, effectiveFrom: 'YYYY-MM-DDTHH:mm', rows, cols,

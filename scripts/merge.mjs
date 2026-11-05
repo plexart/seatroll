@@ -2,6 +2,7 @@
 // Usage: npm run merge -- <changeset.json> [more.json ...]
 import { readFileSync } from 'node:fs';
 import { mergeInto, upgradeChangeset, validateChangeset } from '../js/data.js';
+import { sessionKey } from '../js/sessions.js';
 import { getPassword } from './lib/env.mjs';
 import { findClass, readClassData, writeClassData } from './lib/classes.mjs';
 
@@ -35,6 +36,7 @@ for (const [classId, items] of byClass) {
   const password = await getPassword(classId);
   let data = await readClassData(cls, password);
   let changed = false;
+  const listed = new Set((data.sessions ?? []).map((s) => sessionKey(s.date, s.slot)));
   for (const { file, changeset } of items) {
     const { result, counts } = mergeInto(data, changeset);
     data = result;
@@ -44,6 +46,15 @@ for (const [classId, items] of byClass) {
         .map(([k, n]) => `${k} ${n}`)
         .join(', ') || 'no changes';
     console.log(`${file} -> ${classId}: ${summary}`);
+    // The app only shows listed sessions; records for others are kept but hidden.
+    const unlisted = new Set(
+      [...(changeset.leaves ?? []), ...(changeset.attendance ?? [])]
+        .map((r) => sessionKey(r.date, r.slot))
+        .filter((key) => !listed.has(key)),
+    );
+    if (unlisted.size) {
+      console.warn(`  Warning: records for unlisted sessions: ${[...unlisted].join(', ')}`);
+    }
   }
   if (changed) {
     await writeClassData(cls, data, password);
