@@ -1,7 +1,6 @@
 // Reading and writing data/classes.json and the encrypted per-class data files.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { decryptJson, encryptJson } from '../../js/crypto.js';
-import { upgradeData } from '../../js/data.js';
 
 export const ROOT = new URL('../../', import.meta.url);
 const CLASSES_FILE = new URL('data/classes.json', ROOT);
@@ -25,7 +24,7 @@ export function findClass(classId) {
 export async function readClassData(cls, password) {
   const envelope = JSON.parse(readFileSync(new URL(cls.file, ROOT), 'utf8'));
   try {
-    return upgradeData(await decryptJson(envelope, password));
+    return await decryptJson(envelope, password);
   } catch (err) {
     if (err.code === 'wrongPassword') {
       throw new Error(`Wrong password for class "${cls.id}" (check PASSWORD_${cls.id} in .env)`);

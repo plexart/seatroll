@@ -12,11 +12,8 @@ import {
   pruneOverlay,
   rangeReport,
   sessionSummary,
-  upgradeChangeset,
-  upgradeData,
   validateChangeset,
 } from '../js/data.js';
-import { DEFAULT_SCHEDULE, DEFAULT_SLOTS } from '../js/sessions.js';
 
 const T1 = '2026-11-01T00:00:00.000Z';
 const T2 = '2026-11-02T00:00:00.000Z';
@@ -228,36 +225,4 @@ test('pastedLeaves adds to existing leaves and keeps notes unless replaced', () 
     },
     { date: '2026-11-07', slot: 'am', students: [{ id: 's2', note: '理疗' }], updatedAt: T2 },
   ]);
-});
-
-test('upgradeData renames version 1 slots and adds the schedule', () => {
-  const v1 = {
-    version: 1,
-    slots: [{ id: 'fri-eve', weekday: 5, start: '18:30', end: '22:00' }],
-    students: [],
-    seatCharts: [],
-    leaves: [{ date: '2026-11-07', slot: 'sat-pm', students: [], updatedAt: T1 }],
-    attendance: [{ date: '2026-11-06', slot: 'fri-eve', marks: {}, updatedAt: T1 }],
-  };
-  const v2 = upgradeData(v1);
-  assert.equal(v2.version, 2);
-  assert.deepEqual(v2.slots, DEFAULT_SLOTS);
-  assert.deepEqual(v2.schedule, DEFAULT_SCHEDULE);
-  assert.equal(v2.leaves[0].slot, 'pm');
-  assert.equal(v2.attendance[0].slot, 'eve');
-  assert.equal(upgradeData(v2), v2);
-  assert.equal(v1.leaves[0].slot, 'sat-pm', 'input is not mutated');
-});
-
-test('upgradeChangeset renames version 1 slot ids and keeps the rest', () => {
-  const cs = {
-    type: 'seatroll-changeset',
-    classId: 'x',
-    leaves: [{ date: '2026-11-07', slot: 'sat-am', students: [], updatedAt: T1 }],
-    attendance: [{ date: '2026-11-07', slot: 'pm', marks: {}, updatedAt: T1 }],
-  };
-  const up = upgradeChangeset(cs);
-  assert.deepEqual([up.leaves[0].slot, up.attendance[0].slot], ['am', 'pm']);
-  assert.deepEqual(upgradeChangeset(up), up);
-  assert.equal(upgradeChangeset({ type: 'seatroll-changeset', classId: 'x' }).leaves, undefined);
 });

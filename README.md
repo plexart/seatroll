@@ -193,11 +193,6 @@ tests/                  node:test unit tests
 A changeset file has the same collections (any subset) plus `type: "seatroll-changeset"` and
 `classId`.
 
-Version 1 slots were tied to a weekday (`fri-eve`, `sat-am`, `sat-pm`). The app and the scripts
-upgrade version 1 data, changesets and unmerged browser edits on load (`upgradeData` /
-`upgradeChangeset` in `js/data.js`); a data file is stored in the new form the next time a
-script writes it.
-
 ## Internationalization
 
 UI text is never hard-coded: HTML uses `data-i18n` attributes and JS calls `t(key, params)`.

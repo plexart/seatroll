@@ -25,11 +25,10 @@ import {
 
 export const CHANGESET_TYPE = 'seatroll-changeset';
 export const COLLECTIONS = ['students', 'seatCharts', 'leaves', 'attendance'];
-export const DATA_VERSION = 2;
 
 export function emptyData() {
   return {
-    version: DATA_VERSION,
+    version: 2,
     slots: DEFAULT_SLOTS,
     schedule: DEFAULT_SCHEDULE,
     sessions: [],
@@ -42,40 +41,6 @@ export function emptyData() {
 
 export function emptyChangeset(classId) {
   return { type: CHANGESET_TYPE, classId };
-}
-
-// Version 1 slots were tied to a weekday; version 2 slots are times of day.
-const V1_SLOT_IDS = { 'fri-eve': 'eve', 'sat-am': 'am', 'sat-pm': 'pm' };
-
-function renameSlots(obj) {
-  const result = { ...obj };
-  for (const name of ['leaves', 'attendance', 'sessions']) {
-    if (!Array.isArray(obj[name])) continue;
-    result[name] = obj[name].map((r) =>
-      V1_SLOT_IDS[r?.slot] ? { ...r, slot: V1_SLOT_IDS[r.slot] } : r,
-    );
-  }
-  return result;
-}
-
-/** Brings decrypted class data up to the current version. */
-export function upgradeData(data) {
-  if ((data.version ?? 1) >= DATA_VERSION) return data;
-  return {
-    ...renameSlots(data),
-    version: DATA_VERSION,
-    slots: DEFAULT_SLOTS,
-    schedule: DEFAULT_SCHEDULE,
-    sessions: data.sessions ?? [],
-  };
-}
-
-/**
- * Renames version 1 slot ids in a changeset (an exported file or the browser's overlay), so
- * edits made before the upgrade still apply. Safe to call on any changeset.
- */
-export function upgradeChangeset(changeset) {
-  return renameSlots(changeset);
 }
 
 /** Identity of a record within its collection. */
