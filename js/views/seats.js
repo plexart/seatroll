@@ -340,32 +340,37 @@ export function renderSeatEditor(container, ctx) {
         update({ ...cloneChart(chart), effectiveFrom: e.target.value.slice(0, 16) }),
     });
 
-    const grid = renderSeatGrid(chart, view, (cell) => {
-      if (mode === 'layout') {
-        const info = { onClick: () => tapLayout(cell) };
-        if (cell.kind === 'seat') {
-          const sid = getSeat(chart, cell.key);
-          return { ...info, text: sid ? names.get(sid)?.name : '', className: 'layout-seat' };
+    const grid = renderSeatGrid(
+      chart,
+      view,
+      (cell) => {
+        if (mode === 'layout') {
+          const info = { onClick: () => tapLayout(cell) };
+          if (cell.kind === 'seat') {
+            const sid = getSeat(chart, cell.key);
+            return { ...info, text: sid ? names.get(sid)?.name : '', className: 'layout-seat' };
+          }
+          return { ...info, text: '+', className: 'layout-add' };
         }
-        return { ...info, text: '+', className: 'layout-add' };
-      }
-      if (cell.kind !== 'seat') return {};
-      const sid = getSeat(chart, cell.key);
-      const selected = selection?.type === 'seat' && selection.key === cell.key;
-      const target = selection && !selected;
-      return {
-        text: sid ? (names.get(sid)?.name ?? '?') : '',
-        className: [
-          sid ? 'st-expected' : 'st-empty',
-          selected && 'selected',
-          target && 'target',
-          sid && changed?.has(sid) && 'changed',
-        ]
-          .filter(Boolean)
-          .join(' '),
-        onClick: () => tapSeat(cell.key),
-      };
-    });
+        if (cell.kind !== 'seat') return {};
+        const sid = getSeat(chart, cell.key);
+        const selected = selection?.type === 'seat' && selection.key === cell.key;
+        const target = selection && !selected;
+        return {
+          text: sid ? (names.get(sid)?.name ?? '?') : '',
+          className: [
+            sid ? 'st-expected' : 'st-empty',
+            selected && 'selected',
+            target && 'target',
+            sid && changed?.has(sid) && 'changed',
+          ]
+            .filter(Boolean)
+            .join(' '),
+          onClick: () => tapSeat(cell.key),
+        };
+      },
+      { showVoid: mode === 'layout' },
+    );
 
     const shiftBar = h(
       'div',

@@ -35,9 +35,11 @@ export function labelText(cell) {
 
 /**
  * Builds the grid element. `seat(cell)` is called for 'seat', 'void' and 'disabled' cells and
- * returns { text, sub, className, onClick } (all optional) to customize them.
+ * returns { text, sub, className, onClick } (all optional) to customize them. Empty podium-row
+ * cells ('void') are only drawn with `showVoid` (the layout editor, where they add a seat);
+ * otherwise they stay blank like the half-column gaps.
  */
-export function renderSeatGrid(chart, view, seat) {
+export function renderSeatGrid(chart, view, seat, { showVoid = false } = {}) {
   const rows = layout(chart, view);
   const grid = h('div', {
     class: `seatgrid view-${view}`,
@@ -46,6 +48,7 @@ export function renderSeatGrid(chart, view, seat) {
   rows.forEach((row, ri) => {
     row.forEach((cell, ci) => {
       if (cell.kind === 'gap') return; // the half-column ends of the podium row stay blank
+      if (cell.kind === 'void' && !showVoid) return;
       const style = `grid-row: ${ri + 1}; grid-column: ${gridColumn(cell, ci, row.length)}`;
       if (['seat', 'void', 'disabled'].includes(cell.kind)) {
         const info = seat(cell) ?? {};

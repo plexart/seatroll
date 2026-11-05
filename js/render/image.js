@@ -105,7 +105,8 @@ export function chartImage(chart, view, { title, subtitle, seat, legend = [] }) 
         x += w; // the half-column ends of the podium row stay blank
         continue;
       } else if (cell.kind === 'void') {
-        fill = COLORS.podiumRow;
+        x += w; // podium-row cells without a seat stay blank too
+        continue;
       } else if (cell.kind === 'disabled') {
         fill = '#d1d5db';
       } else {
