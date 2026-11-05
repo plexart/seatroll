@@ -88,5 +88,5 @@ data.attendance = [
 ];
 
 await writeClassData(CLASS, data, PASSWORD);
-writeClasses([CLASS, ...readClasses().filter((c) => c.id !== CLASS.id)]);
+writeClasses([...readClasses().filter((c) => c.id !== CLASS.id), CLASS]);
 console.log(`Wrote ${CLASS.file} (${data.students.length} students, password "${PASSWORD}")`);

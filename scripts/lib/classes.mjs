@@ -9,7 +9,9 @@ export function readClasses() {
   return existsSync(CLASSES_FILE) ? JSON.parse(readFileSync(CLASSES_FILE, 'utf8')) : [];
 }
 
+/** Writes the class list; the demo class always goes last so real classes come first. */
 export function writeClasses(classes) {
+  classes = [...classes.filter((c) => c.id !== 'demo'), ...classes.filter((c) => c.id === 'demo')];
   writeFileSync(CLASSES_FILE, JSON.stringify(classes, null, 2) + '\n');
 }
 
