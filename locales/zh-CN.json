@@ -47,10 +47,11 @@
   "common.save": "保存",
   "common.saved": "已保存",
   "common.delete": "删除",
+  "common.copy": "复制",
   "common.copyText": "复制文字",
   "common.copied": "已复制，可粘贴到微信群",
   "common.copyFailed": "复制失败",
-  "common.image": "生成图片",
+  "common.image": "图片",
   "common.unmerged": "未合并",
   "common.unmergedHint": "标记为“未合并”的数据只保存在本机，请导出文件交给管理员合并。",
 
@@ -91,7 +92,7 @@
   "checkin.saved": "已签到，更新于 {time}",
   "checkin.notSaved": "尚未签到。全员到齐请点“全部到齐”。",
   "checkin.confirm": "全部到齐",
-  "checkin.export": "导出签到",
+  "checkin.export": "导出",
 
   "seats.effective": "{time} 起生效",
   "seats.effectiveFrom": "生效时间",

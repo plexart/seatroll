@@ -322,6 +322,14 @@ textarea {
 .actions .btn.danger {
   margin-right: auto; /* danger buttons go first, far from the thumb */
 }
+.actions.one-line {
+  flex-wrap: nowrap;
+}
+.actions.one-line .btn {
+  min-width: 0;
+  padding-inline: 10px;
+  white-space: nowrap;
+}
 .actions.sticky {
   position: sticky;
   bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px);

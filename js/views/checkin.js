@@ -132,25 +132,15 @@ export function renderCheckin(container) {
 
     const actions = h(
       'div',
-      { class: 'actions' },
-      record
-        ? null
-        : h(
-            'button',
-            { type: 'button', class: 'btn primary', onClick: () => save({}) },
-            t('checkin.confirm'),
-          ),
+      { class: 'actions one-line' },
       h(
         'button',
         {
           type: 'button',
           class: 'btn',
-          onClick: async () =>
-            toast(
-              t((await copyText(sessionText(summary))) ? 'common.copied' : 'common.copyFailed'),
-            ),
+          onClick: () => exportCollections(['attendance'], 'attendance'),
         },
-        t('common.copyText'),
+        t('checkin.export'),
       ),
       h(
         'button',
@@ -167,10 +157,20 @@ export function renderCheckin(container) {
         {
           type: 'button',
           class: 'btn',
-          onClick: () => exportCollections(['attendance'], 'attendance'),
+          onClick: async () =>
+            toast(
+              t((await copyText(sessionText(summary))) ? 'common.copied' : 'common.copyFailed'),
+            ),
         },
-        t('checkin.export'),
+        t('common.copy'),
       ),
+      record
+        ? null
+        : h(
+            'button',
+            { type: 'button', class: 'btn primary', onClick: () => save({}) },
+            t('checkin.confirm'),
+          ),
     );
 
     setChildren(
