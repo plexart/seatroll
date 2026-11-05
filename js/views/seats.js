@@ -216,6 +216,7 @@ export function renderSeatEditor(container, ctx) {
       if (dx || dy) moves.push({ el, dx, dy });
     }
     const median = (values) => values.sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0;
+    if (slide === 'cross') return playCross(moves, median(moves.map((m) => -m.dx)));
     const mx = slide ? median(moves.map((m) => -m.dx)) : 0;
     const my = slide ? median(moves.map((m) => -m.dy)) : 0;
     const timing = { duration: 380, easing: 'cubic-bezier(.2, .8, .2, 1)' };
@@ -242,6 +243,25 @@ export function renderSeatEditor(container, ctx) {
           timing,
         );
       }
+    }
+  };
+
+  // Cross rotation in two steps: the front and back halves first trade places, then every
+  // block slides one column pair over (`mx` on screen). The pair that runs off one side fades
+  // out there and slides back in from just outside the other side.
+  const playCross = (moves, mx) => {
+    const ease = 'cubic-bezier(.4, 0, .2, 1)';
+    const at = (x, y, rest) => ({ transform: `translate(${x}px, ${y}px)`, opacity: 1, ...rest });
+    for (const { el, dx, dy } of moves) {
+      const frames = [at(dx, dy, { easing: ease }), at(dx, 0, { offset: 0.5, easing: ease })];
+      if (-dx * mx < 0) {
+        frames.push(
+          at(dx + mx / 2, 0, { offset: 0.75, opacity: 0 }),
+          at(-mx / 2, 0, { offset: 0.75, opacity: 0, easing: 'ease-out' }),
+        );
+      }
+      frames.push({ transform: 'none', opacity: 1 });
+      el.animate(frames, { duration: 900 });
     }
   };
 
@@ -393,8 +413,7 @@ export function renderSeatEditor(container, ctx) {
           class: 'btn small cross-rotate',
           title: t('seats.crossRotateHint'),
           disabled: !canCrossRotate(chart),
-          // Half the class moves back and half forward: each name flies on its own.
-          onClick: () => update(crossRotate(chart)),
+          onClick: () => update(crossRotate(chart), { slide: 'cross' }),
         },
         t('seats.crossRotate'),
       ),
