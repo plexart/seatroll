@@ -9,7 +9,7 @@ import {
   studentMap,
 } from '../data.js';
 import { monthRange, toDateStr, toTimeStr, weekRange } from '../dates.js';
-import { copyText, h, saveFile, setChildren, toast } from '../dom.js';
+import { copyAndShareText, h, saveFile, setChildren, toast } from '../dom.js';
 import { formatDate, sessionLabel, slotPart } from '../format.js';
 import { t } from '../i18n.js';
 import { tableImage } from '../render/image.js';
@@ -59,7 +59,7 @@ const copyButton = (getText) =>
       type: 'button',
       class: 'btn',
       onClick: async () =>
-        toast(t((await copyText(getText())) ? 'common.copied' : 'common.copyFailed')),
+        toast(t((await copyAndShareText(getText())) ? 'common.copied' : 'common.copyFailed')),
     },
     t('common.copyText'),
   );

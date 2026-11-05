@@ -64,6 +64,23 @@ export async function saveFile(blob, filename) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * Copies text, then also opens the share sheet where supported (mobile), so it can go straight to
+ * WeChat. Both start in the same tick to keep the click's user activation. Resolves to whether the
+ * copy succeeded.
+ */
+export async function copyAndShareText(text) {
+  const copied = copyText(text);
+  if (navigator.share) {
+    try {
+      await navigator.share({ text });
+    } catch {
+      // Cancelled or unsupported: the text is still on the clipboard.
+    }
+  }
+  return copied;
+}
+
 export async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);

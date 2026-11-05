@@ -4,7 +4,7 @@
 import { getSeat } from '../chart.js';
 import { findAttendance, now, sessionSummary, studentMap } from '../data.js';
 import { toDateStr, toTimeStr } from '../dates.js';
-import { copyText, h, saveFile, setChildren, toast } from '../dom.js';
+import { copyAndShareText, h, saveFile, setChildren, toast } from '../dom.js';
 import { formatDate, sessionLabel } from '../format.js';
 import { t } from '../i18n.js';
 import { renderSeatGrid } from '../render/seatgrid.js';
@@ -159,7 +159,11 @@ export function renderCheckin(container) {
           class: 'btn',
           onClick: async () =>
             toast(
-              t((await copyText(sessionText(summary))) ? 'common.copied' : 'common.copyFailed'),
+              t(
+                (await copyAndShareText(sessionText(summary)))
+                  ? 'common.copied'
+                  : 'common.copyFailed',
+              ),
             ),
         },
         t('common.copy'),
