@@ -6,6 +6,8 @@ import {
   emptyData,
   leaveOverview,
   mergeInto,
+  parseLeavePaste,
+  pastedLeaves,
   pruneOverlay,
   rangeReport,
   sessionSummary,
@@ -134,4 +136,63 @@ test('leaveOverview lists non-empty leave records in range', () => {
   const overview = leaveOverview(data, '2026-11-01', '2026-11-30');
   assert.equal(overview.length, 1);
   assert.deepEqual(overview[0].students, [{ id: 's1', name: '乙', note: '病假' }]);
+});
+
+test('parseLeavePaste reads rows copied from a spreadsheet', () => {
+  const students = [
+    { id: 'a', name: '褚沐' },
+    { id: 'b', name: '方可瑶' },
+  ];
+  const aliases = new Map([
+    ['周五晚上', 'fri-eve'],
+    ['周六上午', 'sat-am'],
+    ['周六下午', 'sat-pm'],
+  ]);
+  const text = [
+    '学生姓名\t请假原因\t请假时间段',
+    '褚沐\t上辅导班\t周五晚上,周六上午,周六下午',
+    '方可瑶\t理疗\t周五晚上，周六下午',
+    '',
+    '王五\t病假\t周五晚上',
+    '褚沐\t\t',
+    '方可瑶\t\t周日上午、周六上午',
+  ].join('\r\n');
+  assert.deepEqual(parseLeavePaste(text, students, aliases), {
+    entries: [
+      { studentId: 'a', note: '上辅导班', slotIds: ['fri-eve', 'sat-am', 'sat-pm'] },
+      { studentId: 'b', note: '理疗', slotIds: ['fri-eve', 'sat-pm'] },
+      { studentId: 'a', note: '', slotIds: null },
+      { studentId: 'b', note: '', slotIds: ['sat-am'] },
+    ],
+    unknownNames: ['王五'],
+    unknownSlots: ['周日上午'],
+  });
+  // Without tabs, cells split on whitespace.
+  assert.deepEqual(parseLeavePaste('褚沐    理疗    周五晚上', students, aliases).entries, [
+    { studentId: 'a', note: '理疗', slotIds: ['fri-eve'] },
+  ]);
+});
+
+test('pastedLeaves adds to existing leaves and keeps notes unless replaced', () => {
+  const data = sampleData();
+  const sessions = [
+    { date: '2026-11-06', slot: { id: 'fri-eve' } },
+    { date: '2026-11-07', slot: { id: 'sat-am' } },
+  ];
+  const entries = [
+    { studentId: 's1', note: '', slotIds: ['fri-eve'] },
+    { studentId: 's2', note: '理疗', slotIds: null },
+  ];
+  assert.deepEqual(pastedLeaves(data, sessions, entries, T2), [
+    {
+      date: '2026-11-06',
+      slot: 'fri-eve',
+      students: [
+        { id: 's1', note: '病假' },
+        { id: 's2', note: '理疗' },
+      ],
+      updatedAt: T2,
+    },
+    { date: '2026-11-07', slot: 'sat-am', students: [{ id: 's2', note: '理疗' }], updatedAt: T2 },
+  ]);
 });

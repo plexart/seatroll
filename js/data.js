@@ -148,6 +148,82 @@ export function activeStudents(data) {
     .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
 }
 
+/**
+ * Parses leave rows copied from a spreadsheet: name, reason, sessions (e.g. "周五晚上,周六上午"),
+ * tab-separated as Excel copies them (whitespace-separated also works). A header row (first cell
+ * containing "姓名") and blank lines are skipped. `slotAliases` maps session words to slot ids;
+ * an empty sessions cell means every shown session (slotIds: null).
+ */
+export function parseLeavePaste(text, students, slotAliases) {
+  const byName = new Map(students.map((s) => [s.name, s.id]));
+  const entries = [];
+  const unknownNames = [];
+  const unknownSlots = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const cells = (line.includes('\t') ? line.split('\t') : line.trim().split(/\s+/)).map((c) =>
+      c
+        .trim()
+        .replace(/^"(.*)"$/, '$1')
+        .trim(),
+    );
+    const [name, note = '', ...rest] = cells;
+    if (!name || name.includes('姓名')) continue;
+    const id = byName.get(name);
+    if (!id) {
+      unknownNames.push(name);
+      continue;
+    }
+    const words = rest
+      .join(' ')
+      .split(/[\s,，、;；/]+/)
+      .filter(Boolean);
+    let slotIds = null;
+    if (words.length) {
+      slotIds = [];
+      for (const w of words) {
+        const slot = slotAliases.get(w);
+        if (slot) {
+          if (!slotIds.includes(slot)) slotIds.push(slot);
+        } else unknownSlots.push(w);
+      }
+      if (!slotIds.length) continue;
+    }
+    entries.push({ studentId: id, note, slotIds });
+  }
+  return {
+    entries,
+    unknownNames: [...new Set(unknownNames)],
+    unknownSlots: [...new Set(unknownSlots)],
+  };
+}
+
+/**
+ * Leave records that add the parsed entries to the given sessions ({ date, slot }), keeping
+ * everyone already on leave; a non-empty reason replaces the student's note.
+ */
+export function pastedLeaves(data, sessions, entries, updatedAt) {
+  const changed = new Map();
+  for (const session of sessions) {
+    const adding = entries.filter((e) => !e.slotIds || e.slotIds.includes(session.slot.id));
+    if (!adding.length) continue;
+    const existing = findLeave(data, session.date, session.slot.id)?.students ?? [];
+    const students = new Map(existing.map((s) => [s.id, s]));
+    for (const { studentId, note } of adding) {
+      const keep = students.get(studentId)?.note;
+      const n = note || keep;
+      students.set(studentId, n ? { id: studentId, note: n } : { id: studentId });
+    }
+    changed.set(`${session.date}|${session.slot.id}`, {
+      date: session.date,
+      slot: session.slot.id,
+      students: [...students.values()],
+      updatedAt,
+    });
+  }
+  return [...changed.values()];
+}
+
 export function findSlot(data, slotId) {
   return data.slots.find((s) => s.id === slotId);
 }
