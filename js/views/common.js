@@ -6,7 +6,6 @@ import { countRecords } from '../data.js';
 import { t } from '../i18n.js';
 import { formatTimestamp, sessionLabel } from '../format.js';
 import { chartImage } from '../render/image.js';
-import { seatLabel } from '../render/seatgrid.js';
 import { sortSlots } from '../sessions.js';
 import { exportChangeset, prefs, state } from '../store.js';
 
@@ -68,10 +67,7 @@ export function badge(text, kind = '') {
   return h('span', { class: `badge ${kind}` }, text);
 }
 
-const nameList = (list, chart) =>
-  list
-    .map((s) => (chart && s.seat ? `${s.name}（${seatLabel(s.seat, chart)}）` : s.name))
-    .join('、');
+const nameList = (list) => list.map((s) => s.name).join('、');
 
 /** Plain-text session report for pasting into a group chat. */
 export function sessionText(summary) {
@@ -88,7 +84,7 @@ export function sessionText(summary) {
     lines.push(
       t('text.absent', {
         n: summary.absent.length,
-        names: nameList(summary.absent, summary.chart),
+        names: nameList(summary.absent),
       }),
     );
   } else if (summary.record) {
@@ -106,7 +102,7 @@ export function sessionText(summary) {
     lines.push(
       t('text.presentOnLeave', {
         n: summary.presentOnLeave.length,
-        names: nameList(summary.presentOnLeave, null),
+        names: nameList(summary.presentOnLeave),
       }),
     );
   }

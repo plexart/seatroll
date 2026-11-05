@@ -6,7 +6,6 @@ import { copyText, h, saveFile, setChildren, toast } from '../dom.js';
 import { formatDate, sessionLabel, slotPart } from '../format.js';
 import { t } from '../i18n.js';
 import { tableImage } from '../render/image.js';
-import { seatLabel } from '../render/seatgrid.js';
 import { resolveSlot } from '../sessions.js';
 import { onChange, state } from '../store.js';
 import { exportName, segmented, sessionImage, sessionPicker, sessionText } from './common.js';
@@ -134,12 +133,7 @@ function sessionTab(draw) {
         h('div', { class: `stat ${c}` }, h('b', {}, String(v)), h('span', {}, t(k))),
       ),
     ),
-    nameSection(
-      t('stat.absent'),
-      summary.absent,
-      (s) => `${s.name}（${seatLabel(s.seat, summary.chart)}）`,
-      'absent',
-    ),
+    nameSection(t('stat.absent'), summary.absent, (s) => s.name, 'absent'),
     nameSection(
       t('stat.leave'),
       summary.onLeave,

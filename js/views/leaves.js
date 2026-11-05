@@ -2,12 +2,11 @@
 // morning and afternoon); "specific date" shows all slots on one date, for holiday make-up
 // lessons. Tapping a cell toggles leave for that student and session; changes save at once.
 
-import { activeStudents, findLeave, now, sessionSummary } from '../data.js';
+import { activeStudents, findLeave, now } from '../data.js';
 import { addDays, toDateStr, toTimeStr } from '../dates.js';
 import { h, setChildren } from '../dom.js';
 import { formatShortDate, slotName, slotPart } from '../format.js';
 import { t } from '../i18n.js';
-import { seatLabel } from '../render/seatgrid.js';
 import { daySessions, defaultLeaveWeek, weekSessions } from '../sessions.js';
 import { commit, isUnmerged, onChange, state } from '../store.js';
 import { exportCollections, segmented } from './common.js';
@@ -37,9 +36,6 @@ export function renderLeaves(container) {
       const leave = findLeave(state.data, s.date, s.slot.id);
       return new Map((leave?.students ?? []).map((x) => [x.id, x.note ?? '']));
     });
-    // Seat of each student in the chart of the first session, to help find them.
-    const first = sessionSummary(state.data, sessions[0].date, sessions[0].slot.id);
-    const seats = new Map(first.expected.map((s) => [s.id, s.seat]));
     const students = activeStudents(state.data).filter((s) => !filter || s.name.includes(filter));
 
     const dateInput = h('input', {
@@ -100,9 +96,6 @@ export function renderLeaves(container) {
               },
             },
             st.name,
-            seats.has(st.id)
-              ? h('span', { class: 'muted small' }, seatLabel(seats.get(st.id), first.chart))
-              : null,
           ),
         ),
         sessions.map((s, i) => {
