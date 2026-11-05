@@ -315,7 +315,7 @@ function leaveTab(draw) {
           ),
         )
       : h('p', { class: 'empty' }, t('report.none')),
-    h('div', { class: 'actions' }, copyButton(text)),
+    overview.length > 0 && h('div', { class: 'actions' }, copyButton(text)),
   );
 }
 
