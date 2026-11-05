@@ -1,6 +1,6 @@
 // Renders a seat chart as a CSS grid of cells, in the orientation of the chosen view.
 
-import { layout, parseKey, podiumCol } from '../chart.js';
+import { colNumber, layout, parseKey, podiumCol } from '../chart.js';
 import { h } from '../dom.js';
 import { t } from '../i18n.js';
 
@@ -11,7 +11,7 @@ import { t } from '../i18n.js';
 export function seatLabel(key, chart) {
   if (!key) return t('seat.none');
   const k = parseKey(key);
-  if (k.area === 'main') return t('seat.main', { row: k.row + 1, col: k.col + 1 });
+  if (k.area === 'main') return t('seat.main', { row: k.row + 1, col: colNumber(chart, k.col) });
   const d = k.col - podiumCol(chart.cols);
   return t(d < 0 ? 'seat.frontLeft' : 'seat.frontRight', { n: Math.abs(d) });
 }

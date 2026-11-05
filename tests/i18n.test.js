@@ -77,3 +77,12 @@ test('podium-row seats are named relative to the podium', async () => {
   assert.equal(seatLabel(mainKey(0, 4), even), '1行5列');
   assert.equal(seatLabel(null, even), '未排座');
 });
+
+test('seat names follow the column numbering direction', async () => {
+  const { createChart, mainKey, setColsFrom } = await import('../js/chart.js');
+  const { seatLabel } = await import('../js/render/seatgrid.js');
+  setMessages(locale, 'zh-CN');
+  const chart = setColsFrom(createChart({ id: 'r', effectiveFrom: '', rows: 1, cols: 8 }), 'right');
+  assert.equal(seatLabel(mainKey(0, 0), chart), '1行8列');
+  assert.equal(seatLabel(mainKey(0, 7), chart), '1行1列');
+});

@@ -3,13 +3,16 @@ import assert from 'node:assert/strict';
 import {
   assign,
   centerPodium,
+  colNumber,
   createChart,
   frontKey,
   getSeat,
   layout,
   mainKey,
   resize,
+  screenSide,
   screenToColDelta,
+  setColsFrom,
   shiftCols,
   shiftRows,
   swap,
@@ -77,6 +80,12 @@ test('on-screen left maps to opposite column directions in the two views', () =>
   assert.equal(screenToColDelta('podium', -1), 1);
 });
 
+test("screen sides are the students' sides in the seat view and swapped in the podium view", () => {
+  assert.equal(screenSide('seat', 'left'), 'left');
+  assert.equal(screenSide('podium', 'left'), 'right');
+  assert.equal(screenSide('podium', 'right'), 'left');
+});
+
 test('assign displaces the occupant and vacates the old seat', () => {
   const { chart, displaced } = assign(sample(), mainKey(0, 0), 'r2c2');
   assert.equal(displaced, 'r0c0');
@@ -113,6 +122,19 @@ test('layout: seat view has the podium on top and columns 1..n; podium view is r
     '1,m:0:2,m:0:1,m:0:0',
     ',f:2,podium,f:0',
   ]);
+});
+
+test("layout: columns can be numbered from the students' right", () => {
+  const chart = setColsFrom(sample(), 'right');
+  const labels = (view) =>
+    layout(chart, view)[0]
+      .slice(1)
+      .map((c) => c.text)
+      .join(',');
+  assert.equal(labels('seat'), '3,2,1');
+  assert.equal(labels('podium'), '1,2,3');
+  assert.equal(colNumber(chart, 0), 3);
+  assert.equal(setColsFrom(chart, 'left').colsFrom, undefined);
 });
 
 const frontSpans = (chart, view) =>

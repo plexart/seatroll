@@ -609,12 +609,22 @@ button.cell {
 }
 .layout-form {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1fr 2fr;
   gap: 8px;
 }
 .layout-form .field.inline {
   flex-direction: column;
   align-items: stretch;
+}
+.layout-form .segmented {
+  display: flex;
+  margin: 0;
+  min-height: 40px; /* same as the inputs next to it */
+}
+.layout-form .segmented button {
+  flex: 1; /* split the width evenly */
+  min-height: 0;
+  padding: 4px 6px;
 }
 
 .tray {

@@ -17,15 +17,15 @@ Demo: open the site, pick **示例班级** and enter the password `demo`.
   date and slot can be changed to look at or fill in another session. Copy a text summary for
   the group chat, save an image, or export the check-in.
 - **Two views** — _podium view_ (default) is what a volunteer standing at the podium sees:
-  podium at the bottom, row 1 next to it, columns 8→1 from left to right. _Seat view_ is what a
-  student sitting down sees: podium on top, columns 1→8. Column labels are on top in both
-  views.
+  podium at the bottom, row 1 next to it, the students' right on the left. _Seat view_ is what
+  a student sitting down sees: podium on top. Column numbers are shown on top in both views.
 - **Seat charts** — each chart has an effective time; the latest one in effect is used. The
   editor can shift everyone forward/back one row or left/right one column (wrapping around;
   seats in the podium row are never moved), and place students by tapping: tap a student, then
   a seat. Seat to seat swaps; a student from the unseated tray takes the seat and the previous
   occupant goes back to the tray. The layout (rows, columns, cells without a desk, seats beside
-  the podium) is editable; the podium is always centred. Charts can be saved as images.
+  the podium, and whether column 1 is on the left or right, as seen in the current view) is
+  editable; the podium is always centred. Charts can be saved as images.
 - **Leave** — regular weeks have three sessions (Friday 18:30–22:00, Saturday 08:00–12:00,
   Saturday 14:00–16:45). The "specific date" mode uses the same three time slots on any date,
   for make-up lessons during holidays.
@@ -162,6 +162,7 @@ tests/                  node:test unit tests
     front: { '<col>': studentId },  // seats in the podium row
     seats: [[studentId | null]],    // row 0 = front row
     disabled: ['<row>:<col>'],      // cells without a desk
+    colsFrom?: 'left' | 'right',    // side column 1 is on, as the students see it; default left
     deleted?, updatedAt,
   }],
   leaves: [{ date, slot, students: [{ id, note? }], updatedAt }],

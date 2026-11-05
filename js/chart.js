@@ -15,6 +15,7 @@
 //   front: { '<col>': studentId|null }, // seats beside the podium (keys = seat exists)
 //   seats: [[studentId|null]],          // rows x cols
 //   disabled: ['<row>:<col>'],          // main-grid cells without a desk
+//   colsFrom?: 'left' | 'right',        // which side (students' view) column 1 is on; default left
 //   updatedAt, deleted?
 // }
 
@@ -43,6 +44,22 @@ export function createChart({ id, effectiveFrom, rows = 6, cols = 8 }) {
     seats: Array.from({ length: rows }, () => Array(cols).fill(null)),
     disabled: [],
   };
+}
+
+/**
+ * The column number shown for column `c`: columns are counted from the students' left by
+ * default, or from their right when the class numbers them that way.
+ */
+export function colNumber(chart, c) {
+  return chart.colsFrom === 'right' ? chart.cols - c : c + 1;
+}
+
+/** Sets which side column 1 is on ('left' or 'right', from the students' view). */
+export function setColsFrom(chart, side) {
+  const next = cloneChart(chart);
+  if (side === 'right') next.colsFrom = 'right';
+  else delete next.colsFrom;
+  return next;
 }
 
 export function cloneChart(chart) {
@@ -185,6 +202,15 @@ export function screenToColDelta(view, direction) {
   return view === 'podium' ? -direction : direction;
 }
 
+/**
+ * Converts a side ('left' | 'right') between the screen and the students' perspective. In the
+ * podium view the two are opposite; the conversion is its own inverse.
+ */
+export function screenSide(view, side) {
+  if (view !== 'podium') return side;
+  return side === 'left' ? 'right' : 'left';
+}
+
 /** Resizes the main grid, keeping students in overlapping cells; others become unseated. */
 export function resize(chart, rows, cols) {
   const next = cloneChart(chart);
@@ -249,8 +275,8 @@ export function toggleFrontSeat(chart, c) {
  * 'disabled' (main cell without a desk, key), 'gap' (half-column filler at both ends of the
  * podium row when the column count is even). Podium-row cells carry `span: [start, end]`, their
  * horizontal extent in half-column units (screen column i covers [2i, 2i + 2]).
- * Seat view: podium on top, columns 1..n left to right. Podium view: rotated 180 degrees,
- * except that the column labels stay on top.
+ * Seat view: podium on top, the students' left on the left. Podium view: rotated 180 degrees,
+ * except that the column labels stay on top. Column numbers follow `colNumber`.
  */
 export function layout(chart, view) {
   const colOrder = [...Array(chart.cols).keys()];
@@ -280,7 +306,7 @@ export function layout(chart, view) {
   }
   const labels = [
     { kind: 'corner' },
-    ...colOrder.map((c) => ({ kind: 'colLabel', text: String(c + 1) })),
+    ...colOrder.map((c) => ({ kind: 'colLabel', text: String(colNumber(chart, c)) })),
   ];
   if (view === 'podium') return [labels, ...mainRows.reverse(), frontRow];
   return [labels, frontRow, ...mainRows];

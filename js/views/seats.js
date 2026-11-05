@@ -11,8 +11,10 @@ import {
   getSeat,
   parseKey,
   resize,
+  screenSide,
   screenToColDelta,
   seatMap,
+  setColsFrom,
   shiftCols,
   shiftRows,
   swap,
@@ -347,6 +349,20 @@ export function renderSeatEditor(container, ctx) {
       { class: 'layout-form' },
       numberField(t('seats.rows'), chart.rows, 1, 15, (n) => update(resize(chart, n, chart.cols))),
       numberField(t('seats.cols'), chart.cols, 1, 15, (n) => update(resize(chart, chart.rows, n))),
+      h(
+        'div',
+        { class: 'field inline' },
+        h('span', {}, t('seats.colsFrom')),
+        segmented(
+          [
+            { value: 'left', label: t('seats.colsFromLeft') },
+            { value: 'right', label: t('seats.colsFromRight') },
+          ],
+          // Sides as the editor sees them on screen, so they swap with the view.
+          screenSide(view, chart.colsFrom === 'right' ? 'right' : 'left'),
+          (side) => update(setColsFrom(chart, screenSide(view, side))),
+        ),
+      ),
     );
 
     const save = () => {
