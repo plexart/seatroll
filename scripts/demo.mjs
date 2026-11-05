@@ -70,21 +70,21 @@ const leave = (date, slot, ids, note) => ({
   updatedAt: STAMP,
 });
 data.leaves = [
-  leave('2026-10-05', 'sat-am', ['s12']),
-  leave('2026-10-30', 'fri-eve', ['s05', 's21'], '病假'),
-  leave('2026-10-31', 'sat-am', ['s33']),
-  leave('2026-10-31', 'sat-pm', ['s33']),
-  leave('2026-11-06', 'fri-eve', ['s08', 's40'], '事假'),
-  leave('2026-11-07', 'sat-am', ['s17']),
-  leave('2026-11-07', 'sat-pm', ['s17', 's26']),
+  leave('2026-10-05', 'am', ['s12']),
+  leave('2026-10-30', 'eve', ['s05', 's21'], '病假'),
+  leave('2026-10-31', 'am', ['s33']),
+  leave('2026-10-31', 'pm', ['s33']),
+  leave('2026-11-06', 'eve', ['s08', 's40'], '事假'),
+  leave('2026-11-07', 'am', ['s17']),
+  leave('2026-11-07', 'pm', ['s17', 's26']),
 ];
 
 const record = (date, slot, marks) => ({ date, slot, marks, by: '示例家长', updatedAt: STAMP });
 data.attendance = [
-  record('2026-10-05', 'sat-am', {}),
-  record('2026-10-30', 'fri-eve', { s14: 'absent', s21: 'presentOnLeave' }),
-  record('2026-10-31', 'sat-am', {}),
-  record('2026-10-31', 'sat-pm', { s44: 'absent' }),
+  record('2026-10-05', 'am', {}),
+  record('2026-10-30', 'eve', { s14: 'absent', s21: 'presentOnLeave' }),
+  record('2026-10-31', 'am', {}),
+  record('2026-10-31', 'pm', { s44: 'absent' }),
 ];
 
 await writeClassData(CLASS, data, PASSWORD);

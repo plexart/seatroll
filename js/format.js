@@ -1,6 +1,6 @@
 // Locale-aware formatting of dates, slots and sessions.
 
-import { parseDate } from './dates.js';
+import { parseDate, weekdayOf } from './dates.js';
 import { raw, t } from './i18n.js';
 
 /** e.g. "11月6日 周五". */
@@ -24,18 +24,14 @@ export function formatTimestamp(ts) {
   return `${formatDate(ts.slice(0, 10))} ${ts.slice(11, 16)}`;
 }
 
-/** Slot name from the locale (e.g. "周五晚上"), falling back to its time range. */
-export function slotName(slot) {
-  return raw('slotNames')?.[slot.id] ?? `${slot.start}-${slot.end}`;
-}
-
-/** Short slot name for holiday days, without the weekday (e.g. "晚上"). */
+/** Slot name from the locale (e.g. "晚上"), falling back to its time range. */
 export function slotPart(slot) {
   return raw('slotParts')?.[slot.id] ?? `${slot.start}-${slot.end}`;
 }
 
-export function slotLabel(slot) {
-  return `${slotName(slot)} ${slot.start}–${slot.end}`;
+/** Weekday and slot (e.g. "周五晚上"), as volunteers write sessions in leave sheets. */
+export function sessionName(date, slot) {
+  return `${raw('weekdays')[weekdayOf(date)]}${slotPart(slot)}`;
 }
 
 /** e.g. "11月6日 周五 晚上 18:30–22:00". */

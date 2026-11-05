@@ -1,7 +1,7 @@
 // Merges changeset files exported from the app into the encrypted class data files.
 // Usage: npm run merge -- <changeset.json> [more.json ...]
 import { readFileSync } from 'node:fs';
-import { mergeInto, validateChangeset } from '../js/data.js';
+import { mergeInto, upgradeChangeset, validateChangeset } from '../js/data.js';
 import { getPassword } from './lib/env.mjs';
 import { findClass, readClassData, writeClassData } from './lib/classes.mjs';
 
@@ -27,7 +27,7 @@ for (const file of files) {
     process.exit(1);
   }
   if (!byClass.has(changeset.classId)) byClass.set(changeset.classId, []);
-  byClass.get(changeset.classId).push({ file, changeset });
+  byClass.get(changeset.classId).push({ file, changeset: upgradeChangeset(changeset) });
 }
 
 for (const [classId, items] of byClass) {

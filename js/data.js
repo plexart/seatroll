@@ -1,7 +1,9 @@
 // Class data model, changeset merging and report aggregation. Pure functions shared by the
 // app and the npm scripts.
 //
-// data = { version: 1, slots, students, seatCharts, leaves, attendance }
+// data = { version: 2, slots, schedule, students, seatCharts, leaves, attendance }
+//   slots:      [{ id, start, end }]          times of day (see sessions.js)
+//   schedule:   [{ weekday, slot }]           regular weekly sessions
 //   students:   [{ id, name, archived?, updatedAt }]
 //   seatCharts: [chart (see chart.js)]
 //   leaves:     [{ date, slot, students: [{ id, note? }], updatedAt }]
@@ -12,15 +14,23 @@
 
 import { seatKeys, getSeat } from './chart.js';
 import { isDateStr, isTimestamp } from './dates.js';
-import { DEFAULT_SLOTS, sessionKey, sessionStart, sortSlots } from './sessions.js';
+import {
+  DEFAULT_SCHEDULE,
+  DEFAULT_SLOTS,
+  sessionKey,
+  sessionStart,
+  sortSlots,
+} from './sessions.js';
 
 export const CHANGESET_TYPE = 'seatroll-changeset';
 export const COLLECTIONS = ['students', 'seatCharts', 'leaves', 'attendance'];
+export const DATA_VERSION = 2;
 
 export function emptyData() {
   return {
-    version: 1,
+    version: DATA_VERSION,
     slots: DEFAULT_SLOTS,
+    schedule: DEFAULT_SCHEDULE,
     students: [],
     seatCharts: [],
     leaves: [],
@@ -30,6 +40,39 @@ export function emptyData() {
 
 export function emptyChangeset(classId) {
   return { type: CHANGESET_TYPE, classId };
+}
+
+// Version 1 slots were tied to a weekday; version 2 slots are times of day.
+const V1_SLOT_IDS = { 'fri-eve': 'eve', 'sat-am': 'am', 'sat-pm': 'pm' };
+
+function renameSlots(obj) {
+  const result = { ...obj };
+  for (const name of ['leaves', 'attendance', 'sessions']) {
+    if (!Array.isArray(obj[name])) continue;
+    result[name] = obj[name].map((r) =>
+      V1_SLOT_IDS[r?.slot] ? { ...r, slot: V1_SLOT_IDS[r.slot] } : r,
+    );
+  }
+  return result;
+}
+
+/** Brings decrypted class data up to the current version. */
+export function upgradeData(data) {
+  if ((data.version ?? 1) >= DATA_VERSION) return data;
+  return {
+    ...renameSlots(data),
+    version: DATA_VERSION,
+    slots: DEFAULT_SLOTS,
+    schedule: DEFAULT_SCHEDULE,
+  };
+}
+
+/**
+ * Renames version 1 slot ids in a changeset (an exported file or the browser's overlay), so
+ * edits made before the upgrade still apply. Safe to call on any changeset.
+ */
+export function upgradeChangeset(changeset) {
+  return renameSlots(changeset);
 }
 
 /** Identity of a record within its collection. */

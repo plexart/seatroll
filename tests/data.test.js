@@ -12,8 +12,11 @@ import {
   pruneOverlay,
   rangeReport,
   sessionSummary,
+  upgradeChangeset,
+  upgradeData,
   validateChangeset,
 } from '../js/data.js';
+import { DEFAULT_SCHEDULE, DEFAULT_SLOTS } from '../js/sessions.js';
 
 const T1 = '2026-11-01T00:00:00.000Z';
 const T2 = '2026-11-02T00:00:00.000Z';
@@ -27,12 +30,12 @@ function sampleData() {
   });
   data.seatCharts = [{ ...chart, updatedAt: T1 }];
   data.leaves = [
-    { date: '2026-11-06', slot: 'fri-eve', students: [{ id: 's1', note: '病假' }], updatedAt: T1 },
+    { date: '2026-11-06', slot: 'eve', students: [{ id: 's1', note: '病假' }], updatedAt: T1 },
   ];
   data.attendance = [
     {
       date: '2026-11-06',
-      slot: 'fri-eve',
+      slot: 'eve',
       marks: { s2: 'absent', s1: 'presentOnLeave' },
       updatedAt: T1,
     },
@@ -51,7 +54,7 @@ test('activeChart picks the latest chart in effect and ignores deleted ones', ()
 });
 
 test('sessionSummary combines chart, leave and check-in marks', () => {
-  const s = sessionSummary(sampleData(), '2026-11-06', 'fri-eve');
+  const s = sessionSummary(sampleData(), '2026-11-06', 'eve');
   assert.deepEqual(
     s.expected.map((x) => x.id),
     ['s0', 's2', 's3'],
@@ -81,7 +84,7 @@ test('mergeInto keeps the newer record per key and counts changes', () => {
       { id: 's1', name: '旧', updatedAt: '2026-10-01T00:00:00.000Z' },
       { id: 's9', name: '新', updatedAt: T2 },
     ],
-    attendance: [{ date: '2026-11-06', slot: 'fri-eve', marks: {}, updatedAt: T2 }],
+    attendance: [{ date: '2026-11-06', slot: 'eve', marks: {}, updatedAt: T2 }],
   });
   assert.deepEqual(counts, { students: 2, attendance: 1 });
   assert.equal(result.students.find((s) => s.id === 's0').name, '甲改');
@@ -123,21 +126,21 @@ test('validateChangeset', () => {
 test('checkedSessions lists checked-in sessions newest first', () => {
   const data = sampleData();
   data.attendance.push(
-    { date: '2026-11-07', slot: 'sat-pm', marks: {}, updatedAt: T1 },
+    { date: '2026-11-07', slot: 'pm', marks: {}, updatedAt: T1 },
     { date: '2026-11-07', slot: 'gone', marks: {}, updatedAt: T1 },
-    { date: '2026-11-07', slot: 'sat-am', marks: {}, updatedAt: T1 },
+    { date: '2026-11-07', slot: 'am', marks: {}, updatedAt: T1 },
   );
-  data.leaves.push({ date: '2026-11-09', slot: 'fri-eve', students: [], updatedAt: T1 });
+  data.leaves.push({ date: '2026-11-09', slot: 'eve', students: [], updatedAt: T1 });
   assert.deepEqual(checkedSessions(data), [
-    { date: '2026-11-07', slot: 'sat-pm' },
-    { date: '2026-11-07', slot: 'sat-am' },
-    { date: '2026-11-06', slot: 'fri-eve' },
+    { date: '2026-11-07', slot: 'pm' },
+    { date: '2026-11-07', slot: 'am' },
+    { date: '2026-11-06', slot: 'eve' },
   ]);
 });
 
 test('rangeReport counts presence only for checked sessions', () => {
   const data = sampleData();
-  data.leaves.push({ date: '2026-11-07', slot: 'sat-am', students: [{ id: 's0' }], updatedAt: T1 });
+  data.leaves.push({ date: '2026-11-07', slot: 'am', students: [{ id: 's0' }], updatedAt: T1 });
   const report = rangeReport(data, '2026-11-01', '2026-11-30');
   assert.equal(report.sessions.length, 2);
   const by = Object.fromEntries(report.students.map((s) => [s.id, s]));
@@ -148,7 +151,7 @@ test('rangeReport counts presence only for checked sessions', () => {
 
 test('leaveOverview lists non-empty leave records in range', () => {
   const data = sampleData();
-  data.leaves.push({ date: '2026-11-07', slot: 'sat-am', students: [], updatedAt: T1 });
+  data.leaves.push({ date: '2026-11-07', slot: 'am', students: [], updatedAt: T1 });
   const overview = leaveOverview(data, '2026-11-01', '2026-11-30');
   assert.equal(overview.length, 1);
   assert.deepEqual(overview[0].students, [{ id: 's1', name: '乙', note: '病假' }]);
@@ -160,9 +163,9 @@ test('parseLeavePaste reads rows copied from a spreadsheet', () => {
     { id: 'b', name: '方可瑶' },
   ];
   const aliases = new Map([
-    ['周五晚上', 'fri-eve'],
-    ['周六上午', 'sat-am'],
-    ['周六下午', 'sat-pm'],
+    ['周五晚上', 'eve'],
+    ['周六上午', 'am'],
+    ['周六下午', 'pm'],
   ]);
   const text = [
     '学生姓名\t请假原因\t请假时间段',
@@ -175,40 +178,72 @@ test('parseLeavePaste reads rows copied from a spreadsheet', () => {
   ].join('\r\n');
   assert.deepEqual(parseLeavePaste(text, students, aliases), {
     entries: [
-      { studentId: 'a', note: '上辅导班', slotIds: ['fri-eve', 'sat-am', 'sat-pm'] },
-      { studentId: 'b', note: '理疗', slotIds: ['fri-eve', 'sat-pm'] },
+      { studentId: 'a', note: '上辅导班', slotIds: ['eve', 'am', 'pm'] },
+      { studentId: 'b', note: '理疗', slotIds: ['eve', 'pm'] },
       { studentId: 'a', note: '', slotIds: null },
-      { studentId: 'b', note: '', slotIds: ['sat-am'] },
+      { studentId: 'b', note: '', slotIds: ['am'] },
     ],
     unknownNames: ['王五'],
     unknownSlots: ['周日上午'],
   });
   // Without tabs, cells split on whitespace.
   assert.deepEqual(parseLeavePaste('褚沐    理疗    周五晚上', students, aliases).entries, [
-    { studentId: 'a', note: '理疗', slotIds: ['fri-eve'] },
+    { studentId: 'a', note: '理疗', slotIds: ['eve'] },
   ]);
 });
 
 test('pastedLeaves adds to existing leaves and keeps notes unless replaced', () => {
   const data = sampleData();
   const sessions = [
-    { date: '2026-11-06', slot: { id: 'fri-eve' } },
-    { date: '2026-11-07', slot: { id: 'sat-am' } },
+    { date: '2026-11-06', slot: { id: 'eve' } },
+    { date: '2026-11-07', slot: { id: 'am' } },
   ];
   const entries = [
-    { studentId: 's1', note: '', slotIds: ['fri-eve'] },
+    { studentId: 's1', note: '', slotIds: ['eve'] },
     { studentId: 's2', note: '理疗', slotIds: null },
   ];
   assert.deepEqual(pastedLeaves(data, sessions, entries, T2), [
     {
       date: '2026-11-06',
-      slot: 'fri-eve',
+      slot: 'eve',
       students: [
         { id: 's1', note: '病假' },
         { id: 's2', note: '理疗' },
       ],
       updatedAt: T2,
     },
-    { date: '2026-11-07', slot: 'sat-am', students: [{ id: 's2', note: '理疗' }], updatedAt: T2 },
+    { date: '2026-11-07', slot: 'am', students: [{ id: 's2', note: '理疗' }], updatedAt: T2 },
   ]);
+});
+
+test('upgradeData renames version 1 slots and adds the schedule', () => {
+  const v1 = {
+    version: 1,
+    slots: [{ id: 'fri-eve', weekday: 5, start: '18:30', end: '22:00' }],
+    students: [],
+    seatCharts: [],
+    leaves: [{ date: '2026-11-07', slot: 'sat-pm', students: [], updatedAt: T1 }],
+    attendance: [{ date: '2026-11-06', slot: 'fri-eve', marks: {}, updatedAt: T1 }],
+  };
+  const v2 = upgradeData(v1);
+  assert.equal(v2.version, 2);
+  assert.deepEqual(v2.slots, DEFAULT_SLOTS);
+  assert.deepEqual(v2.schedule, DEFAULT_SCHEDULE);
+  assert.equal(v2.leaves[0].slot, 'pm');
+  assert.equal(v2.attendance[0].slot, 'eve');
+  assert.equal(upgradeData(v2), v2);
+  assert.equal(v1.leaves[0].slot, 'sat-pm', 'input is not mutated');
+});
+
+test('upgradeChangeset renames version 1 slot ids and keeps the rest', () => {
+  const cs = {
+    type: 'seatroll-changeset',
+    classId: 'x',
+    leaves: [{ date: '2026-11-07', slot: 'sat-am', students: [], updatedAt: T1 }],
+    attendance: [{ date: '2026-11-07', slot: 'pm', marks: {}, updatedAt: T1 }],
+  };
+  const up = upgradeChangeset(cs);
+  assert.deepEqual([up.leaves[0].slot, up.attendance[0].slot], ['am', 'pm']);
+  assert.deepEqual(upgradeChangeset(up), up);
+  assert.equal(upgradeChangeset({ type: 'seatroll-changeset', classId: 'x' }).leaves, undefined);
 });

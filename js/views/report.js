@@ -26,7 +26,9 @@ export function renderReport(container) {
   const now = new Date();
   const today = toDateStr(now);
   range ??= monthRange(today);
-  leaveRange ??= weekRange(defaultLeaveWeek(state.data.slots, today, toTimeStr(now)));
+  leaveRange ??= weekRange(
+    defaultLeaveWeek(state.data.slots, state.data.schedule, today, toTimeStr(now)),
+  );
 
   const draw = () => {
     const body =

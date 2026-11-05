@@ -27,9 +27,9 @@ Demo: open the site, pick **示例班级** and enter the password `demo`.
   occupant goes back to the tray. The layout (rows, columns, cells without a desk, seats beside
   the podium, and whether column 1 is on the left or right, as seen in the current view) is
   editable; the podium is always centred. Charts can be saved as images.
-- **Leave** — regular weeks have three sessions (Friday 18:30–22:00, Saturday 08:00–12:00,
-  Saturday 14:00–16:45). The "specific date" mode uses the same three time slots on any date,
-  for make-up lessons during holidays.
+- **Leave** — regular weeks have three sessions (Friday evening 18:30–22:00, Saturday morning
+  08:00–12:00 and afternoon 14:00–16:45). The "specific date" mode uses the same three time
+  slots on any date, for make-up lessons during holidays.
 - **Reports** — one session's sheet, per-student statistics over a date range, and a leave
   overview; as text or images.
 - **Import** — changeset files exported by other volunteers can be imported directly, so
@@ -155,8 +155,9 @@ tests/                  node:test unit tests
 
 ```js
 {
-  version: 1,
-  slots: [{ id: 'fri-eve', weekday: 5, start: '18:30', end: '22:00' }, ...],
+  version: 2,
+  slots: [{ id: 'am', start: '08:00', end: '12:00' }, ...],   // am, pm, eve: times of day
+  schedule: [{ weekday: 5, slot: 'eve' }, ...],                // regular weekly sessions
   students: [{ id, name, archived?, updatedAt }],
   seatCharts: [{
     id, effectiveFrom: 'YYYY-MM-DDTHH:mm', rows, cols,
@@ -174,6 +175,11 @@ tests/                  node:test unit tests
 
 A changeset file has the same collections (any subset) plus `type: "seatroll-changeset"` and
 `classId`.
+
+Version 1 slots were tied to a weekday (`fri-eve`, `sat-am`, `sat-pm`). The app and the scripts
+upgrade version 1 data, changesets and unmerged browser edits on load (`upgradeData` /
+`upgradeChangeset` in `js/data.js`); a data file is stored in the new form the next time a
+script writes it.
 
 ## Internationalization
 

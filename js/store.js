@@ -11,6 +11,8 @@ import {
   pickCollections,
   pruneOverlay,
   recordKey,
+  upgradeChangeset,
+  upgradeData,
   validateChangeset,
 } from './data.js';
 
@@ -112,7 +114,7 @@ export async function openClass(cls, password) {
   }
   let base;
   try {
-    base = await decryptJson(envelope, password);
+    base = upgradeData(await decryptJson(envelope, password));
   } catch (err) {
     if (err.code === 'wrongPassword') write(passwordKey(cls.id), null);
     throw new LoadError(err.code === 'wrongPassword' ? 'wrongPassword' : 'corrupt');
@@ -127,7 +129,7 @@ export async function openClass(cls, password) {
   }
   state.cls = cls;
   state.base = base;
-  state.overlay = pruneOverlay(base, overlay ?? emptyChangeset(cls.id));
+  state.overlay = pruneOverlay(base, upgradeChangeset(overlay ?? emptyChangeset(cls.id)));
   recompute();
 }
 
@@ -165,6 +167,7 @@ export function importChangeset(changeset) {
   const error = validateChangeset(changeset);
   if (error) throw new LoadError(error);
   if (changeset.classId !== state.cls.id) throw new LoadError('otherClass');
+  changeset = upgradeChangeset(changeset);
   // Only records newer than what we show count as changes.
   const { counts } = mergeInto(state.data, changeset);
   state.overlay = pruneOverlay(state.base, mergeInto(state.overlay, changeset).result);

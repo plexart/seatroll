@@ -40,8 +40,7 @@
     "二十"
   ],
   "weekdays": ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
-  "slotNames": { "fri-eve": "周五晚上", "sat-am": "周六上午", "sat-pm": "周六下午" },
-  "slotParts": { "fri-eve": "晚上", "sat-am": "上午", "sat-pm": "下午" },
+  "slotParts": { "am": "上午", "pm": "下午", "eve": "晚上" },
 
   "common.cancel": "取消",
   "common.save": "保存",

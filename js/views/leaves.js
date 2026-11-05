@@ -6,7 +6,7 @@
 import { activeStudents, findLeave, now, parseLeavePaste, pastedLeaves } from '../data.js';
 import { addDays, toDateStr, toTimeStr } from '../dates.js';
 import { h, setChildren, toast } from '../dom.js';
-import { formatShortDate, slotName, slotPart } from '../format.js';
+import { formatShortDate, sessionName, slotPart } from '../format.js';
 import { t } from '../i18n.js';
 import { daySessions, defaultLeaveWeek, weekSessions, weekStartDate } from '../sessions.js';
 import { commit, isUnmerged, onChange, state } from '../store.js';
@@ -22,7 +22,7 @@ let pasteProblems = [];
 export function renderLeaves(container) {
   if (!date) {
     const d = new Date();
-    date = defaultLeaveWeek(state.data.slots, toDateStr(d), toTimeStr(d));
+    date = defaultLeaveWeek(state.data.slots, state.data.schedule, toDateStr(d), toTimeStr(d));
   }
 
   const setLeave = (session, studentId, on, note) => {
@@ -34,9 +34,11 @@ export function renderLeaves(container) {
 
   const draw = () => {
     // Show the week by its first session's date so the ±7-day steps stay on that weekday.
-    if (mode === 'week') date = weekStartDate(state.data.slots, date);
+    if (mode === 'week') date = weekStartDate(state.data.slots, state.data.schedule, date);
     const sessions =
-      mode === 'week' ? weekSessions(state.data.slots, date) : daySessions(state.data.slots, date);
+      mode === 'week'
+        ? weekSessions(state.data.slots, state.data.schedule, date)
+        : daySessions(state.data.slots, date);
     const leaveSets = sessions.map((s) => {
       const leave = findLeave(state.data, s.date, s.slot.id);
       return new Map((leave?.students ?? []).map((x) => [x.id, x.note ?? '']));
@@ -75,7 +77,7 @@ export function renderLeaves(container) {
       h(
         'th',
         {},
-        h('div', {}, mode === 'week' ? slotName(s.slot) : slotPart(s.slot)),
+        h('div', {}, mode === 'week' ? sessionName(s.date, s.slot) : slotPart(s.slot)),
         h('div', { class: 'muted small' }, formatShortDate(s.date)),
       ),
     );
@@ -159,9 +161,9 @@ export function renderLeaves(container) {
     const register = () => {
       if (!pasteText.trim()) return;
       const aliases = new Map();
-      for (const slot of state.data.slots) {
-        aliases.set(slotName(slot), slot.id);
-        aliases.set(slotPart(slot), slot.id);
+      for (const s of sessions) {
+        aliases.set(sessionName(s.date, s.slot), s.slot.id);
+        aliases.set(slotPart(s.slot), s.slot.id);
       }
       const shown = new Set(sessions.map((s) => s.slot.id));
       const parsed = parseLeavePaste(pasteText, activeStudents(state.data), aliases);

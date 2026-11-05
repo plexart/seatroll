@@ -1,13 +1,21 @@
 // Lesson time slots and how a moment in time maps to a session (date + slot).
-// Regular lessons happen on the slot's weekday; holiday make-up lessons reuse the same
-// slots on arbitrary dates, so every function also works for dates without a regular slot.
+// A slot is a time of day (morning, afternoon, evening). The regular weekly pattern is the
+// schedule: which slots are held on which weekday. Holiday make-up lessons reuse the same
+// slots on other dates.
 
 import { addDays, minutes, weekdayOf } from './dates.js';
 
 export const DEFAULT_SLOTS = [
-  { id: 'fri-eve', weekday: 5, start: '18:30', end: '22:00' },
-  { id: 'sat-am', weekday: 6, start: '08:00', end: '12:00' },
-  { id: 'sat-pm', weekday: 6, start: '14:00', end: '16:45' },
+  { id: 'am', start: '08:00', end: '12:00' },
+  { id: 'pm', start: '14:00', end: '16:45' },
+  { id: 'eve', start: '18:30', end: '22:00' },
+];
+
+/** Regular weekly sessions: Friday evening, Saturday morning and afternoon. */
+export const DEFAULT_SCHEDULE = [
+  { weekday: 5, slot: 'eve' },
+  { weekday: 6, slot: 'am' },
+  { weekday: 6, slot: 'pm' },
 ];
 
 /** A session counts as current from this many minutes before it starts. */
@@ -22,9 +30,10 @@ export function sortSlots(slots) {
  * days, e.g. holiday make-up lessons); the slot whose window contains the time wins, otherwise
  * the nearest one.
  */
-export function resolveSlot(slots, date, time) {
+export function resolveSlot(slots, schedule, date, time) {
   const weekday = weekdayOf(date);
-  const sameDay = slots.filter((s) => s.weekday === weekday);
+  const ids = new Set(schedule.filter((e) => e.weekday === weekday).map((e) => e.slot));
+  const sameDay = slots.filter((s) => ids.has(s.id));
   const candidates = sameDay.length ? sameDay : slots;
   const t = minutes(time);
   let best = null;
@@ -42,18 +51,20 @@ export function resolveSlot(slots, date, time) {
 }
 
 /** Sessions of the Monday-based week containing `date`, one per regular slot, in time order. */
-export function weekSessions(slots, date) {
+export function weekSessions(slots, schedule, date) {
   const monday = addDays(date, -((weekdayOf(date) + 6) % 7));
-  return slots
-    .map((slot) => ({ date: addDays(monday, (slot.weekday + 6) % 7), slot }))
+  const byId = new Map(slots.map((s) => [s.id, s]));
+  return schedule
+    .filter((e) => byId.has(e.slot))
+    .map((e) => ({ date: addDays(monday, (e.weekday + 6) % 7), slot: byId.get(e.slot) }))
     .sort((a, b) =>
       a.date === b.date ? minutes(a.slot.start) - minutes(b.slot.start) : a.date < b.date ? -1 : 1,
     );
 }
 
 /** Date of the first regular session in the week containing `date` (Friday by default). */
-export function weekStartDate(slots, date) {
-  return weekSessions(slots, date)[0]?.date ?? date;
+export function weekStartDate(slots, schedule, date) {
+  return weekSessions(slots, schedule, date)[0]?.date ?? date;
 }
 
 /** All slots held on one date (used for holiday make-up days). */
@@ -65,8 +76,8 @@ export function daySessions(slots, date) {
  * The date whose week to show by default in the leave editor: this week until its last
  * session has ended, then next week.
  */
-export function defaultLeaveWeek(slots, date, time) {
-  const sessions = weekSessions(slots, date);
+export function defaultLeaveWeek(slots, schedule, date, time) {
+  const sessions = weekSessions(slots, schedule, date);
   const last = sessions.at(-1);
   if (!last) return date;
   const ended = date > last.date || (date === last.date && minutes(time) > minutes(last.slot.end));

@@ -28,7 +28,10 @@ function currentSession() {
   if (pinned) return pinned;
   const d = new Date();
   const date = toDateStr(d);
-  return { date, slotId: resolveSlot(state.data.slots, date, toTimeStr(d)).id };
+  return {
+    date,
+    slotId: resolveSlot(state.data.slots, state.data.schedule, date, toTimeStr(d)).id,
+  };
 }
 
 export function renderCheckin(container) {
