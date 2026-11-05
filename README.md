@@ -53,6 +53,22 @@ git add data && git commit -m "Add sessions" && git push
 Slots are `am`, `pm` and `eve`; the regular schedule (Friday `eve`, Saturday `am` and `pm`)
 is stored in each class's data.
 
+Leave sign-up sheets exported from the form (`.xls`/`.xlsx`) can be imported directly:
+
+```sh
+npm run import-leaves -- g3-23 ~/Downloads/11月14日留校自习学生信息收集-登记名单.xls
+git add data && git commit -m "Import leave" && git push
+```
+
+Columns are found by header (学生姓名, 请假原因, 请假时间段; the first two rows are skipped,
+columns without a header ignored). The week is taken from the date in the sheet's title, or
+`--date YYYY-MM-DD`. For the students in the sheet, leave in that week's sessions is replaced by
+the sheet (an empty 请假时间段 cancels it); other students are untouched. It also writes to
+`exports/` a tidied spreadsheet (学生姓名, 学生性别, 家长手机号, 请假时间段, 请假原因; most
+sessions first) and a numbered PNG of the students on leave. Gender and phone come from
+`private/<id>.students.csv` (columns with 姓名, 性别 and 手机/电话 in the header; `--csv` for
+another file), matched by name.
+
 The site has no server, so changes travel as files:
 
 1. Edits made in the app (students, seat charts, leave, check-ins) are kept in the browser
@@ -76,19 +92,20 @@ The site has no server, so changes travel as files:
 
 Requires Node 20+. Run `npm install` once.
 
-| Command                                                   | Description                                                        |
-| --------------------------------------------------------- | ------------------------------------------------------------------ |
-| `npm run new-class -- <id> <name>`                        | Create a class: an empty encrypted file and a `classes.json` entry |
-| `npm run add-sessions -- [id] [date[..date]] [slot ...]`  | Add sessions (default: next week's, all classes)                   |
-| `npm run remove-sessions -- [id] date[..date] [slot ...]` | Remove sessions (records are kept, hidden)                         |
-| `npm run merge -- <file.json> [...]`                      | Merge exported changesets into the encrypted data files            |
-| `npm run decrypt -- <id>`                                 | Write the decrypted data to `private/<id>.json` (gitignored)       |
-| `npm run passwd -- <id>`                                  | Re-encrypt a class with a new password                             |
-| `npm run demo`                                            | Regenerate the demo class from made-up names                       |
-| `npm run icons`                                           | Render the PNG icons from `icons/icon.svg`                         |
-| `npm test`                                                | Unit tests (`node --test`)                                         |
-| `npm run format` / `format:check`                         | Format / check the code with Prettier                              |
-| `npm run serve`                                           | Serve the app at http://localhost:8000                             |
+| Command                                                   | Description                                                                     |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `npm run new-class -- <id> <name>`                        | Create a class: an empty encrypted file and a `classes.json` entry              |
+| `npm run add-sessions -- [id] [date[..date]] [slot ...]`  | Add sessions (default: next week's, all classes)                                |
+| `npm run remove-sessions -- [id] date[..date] [slot ...]` | Remove sessions (records are kept, hidden)                                      |
+| `npm run merge -- <file.json> [...]`                      | Merge exported changesets into the encrypted data files                         |
+| `npm run import-leaves -- <id> <file.xls>`                | Import leave from a sign-up sheet; write a tidied sheet and image to `exports/` |
+| `npm run decrypt -- <id>`                                 | Write the decrypted data to `private/<id>.json` (gitignored)                    |
+| `npm run passwd -- <id>`                                  | Re-encrypt a class with a new password                                          |
+| `npm run demo`                                            | Regenerate the demo class from made-up names                                    |
+| `npm run icons`                                           | Render the PNG icons from `icons/icon.svg`                                      |
+| `npm test`                                                | Unit tests (`node --test`)                                                      |
+| `npm run format` / `format:check`                         | Format / check the code with Prettier                                           |
+| `npm run serve`                                           | Serve the app at http://localhost:8000                                          |
 
 Class passwords are kept in `.env` (gitignored), one line per class, so scripts never ask
 twice:
