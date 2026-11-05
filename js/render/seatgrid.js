@@ -43,10 +43,9 @@ export function renderSeatGrid(chart, view, seat) {
     class: `seatgrid view-${view}`,
     style: `--half-cols: ${chart.cols * 2}`,
   });
-  for (const row of rows) {
-    for (const cell of row) {
-      // Grid lines: 1-2 is the row-label column, then two half-columns per seat column.
-      const style = cell.span ? `grid-column: ${cell.span[0] + 2} / ${cell.span[1] + 2}` : null;
+  rows.forEach((row, ri) => {
+    row.forEach((cell, ci) => {
+      const style = `grid-row: ${ri + 1}; grid-column: ${gridColumn(cell, ci, row.length)}`;
       if (['seat', 'void', 'disabled'].includes(cell.kind)) {
         const info = seat(cell) ?? {};
         const interactive = typeof info.onClick === 'function';
@@ -68,7 +67,18 @@ export function renderSeatGrid(chart, view, seat) {
       } else {
         grid.append(h('div', { class: `cell cell-${cell.kind}`, style }, labelText(cell)));
       }
-    }
-  }
+    });
+  });
   return grid;
+}
+
+/**
+ * Grid lines: 1-2 is the leading row-label column, then two half-columns per seat column,
+ * then the trailing row-label column. Every cell is placed explicitly.
+ */
+function gridColumn(cell, index, length) {
+  if (cell.span) return `${cell.span[0] + 2} / ${cell.span[1] + 2}`;
+  if (index === 0) return '1';
+  if (index === length - 1) return '-2';
+  return `${index * 2} / span 2`;
 }

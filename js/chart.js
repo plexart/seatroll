@@ -279,6 +279,7 @@ export function toggleFrontSeat(chart, c) {
  * 'disabled' (main cell without a desk, key), 'gap' (half-column filler at both ends of the
  * podium row when the column count is even). Podium-row cells carry `span: [start, end]`, their
  * horizontal extent in half-column units (screen column i covers [2i, 2i + 2]).
+ * Every row starts and ends with a 'rowLabel' (or 'corner'), so the chart is symmetric.
  * Seat view: podium on top, the students' left on the left. Podium view: rotated 180 degrees,
  * except that the column labels stay on top. Column numbers follow `colNumber`.
  */
@@ -298,6 +299,7 @@ export function layout(chart, view) {
     else frontRow.push({ kind: 'void', key: frontKey(c), span });
   });
   if (offset) frontRow.push({ kind: 'gap', span: [chart.cols * 2 - 1, chart.cols * 2] });
+  frontRow.push({ kind: 'rowLabel', text: '' });
   for (let r = 0; r < chart.rows; r++) {
     mainRows.push([
       { kind: 'rowLabel', text: String(r + 1) },
@@ -306,11 +308,13 @@ export function layout(chart, view) {
           ? { kind: 'disabled', key: mainKey(r, c) }
           : { kind: 'seat', key: mainKey(r, c) },
       ),
+      { kind: 'rowLabel', text: String(r + 1) },
     ]);
   }
   const labels = [
     { kind: 'corner' },
     ...colOrder.map((c) => ({ kind: 'colLabel', text: String(colNumber(chart, c)) })),
+    { kind: 'corner' },
   ];
   if (view === 'podium') return [labels, ...mainRows.reverse(), frontRow];
   return [labels, frontRow, ...mainRows];

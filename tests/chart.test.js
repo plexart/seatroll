@@ -109,18 +109,18 @@ test('layout: seat view has the podium on top and columns 1..n; podium view is r
   const chart = sample();
   const describe = (rows) => rows.map((row) => row.map((c) => c.key ?? c.text ?? c.kind).join(','));
   assert.deepEqual(describe(layout(chart, 'seat')), [
-    'corner,1,2,3',
-    ',f:0,podium,f:2',
-    '1,m:0:0,m:0:1,m:0:2',
-    '2,m:1:0,m:1:1,m:1:2',
-    '3,m:2:0,m:2:1,m:2:2',
+    'corner,1,2,3,corner',
+    ',f:0,podium,f:2,',
+    '1,m:0:0,m:0:1,m:0:2,1',
+    '2,m:1:0,m:1:1,m:1:2,2',
+    '3,m:2:0,m:2:1,m:2:2,3',
   ]);
   assert.deepEqual(describe(layout(chart, 'podium')), [
-    'corner,3,2,1',
-    '3,m:2:2,m:2:1,m:2:0',
-    '2,m:1:2,m:1:1,m:1:0',
-    '1,m:0:2,m:0:1,m:0:0',
-    ',f:2,podium,f:0',
+    'corner,3,2,1,corner',
+    '3,m:2:2,m:2:1,m:2:0,3',
+    '2,m:1:2,m:1:1,m:1:0,2',
+    '1,m:0:2,m:0:1,m:0:0,1',
+    ',f:2,podium,f:0,',
   ]);
 });
 
@@ -128,7 +128,7 @@ test("layout: columns can be numbered from the students' right", () => {
   const chart = setColsFrom(sample(), 'right');
   const labels = (view) =>
     layout(chart, view)[0]
-      .slice(1)
+      .slice(1, -1)
       .map((c) => c.text)
       .join(',');
   assert.equal(labels('seat'), '3,2,1');
@@ -140,7 +140,7 @@ test("layout: columns can be numbered from the students' right", () => {
 const frontSpans = (chart, view) =>
   layout(chart, view)
     .find((row) => row.some((c) => c.kind === 'podium'))
-    .slice(1)
+    .slice(1, -1)
     .map((c) => `${c.key ?? c.kind}@${c.span}`);
 
 test('layout: odd column count puts the podium in the middle column', () => {

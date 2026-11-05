@@ -49,12 +49,12 @@ function fitText(ctx, text, maxWidth, size, weight = '') {
  */
 export function chartImage(chart, view, { title, subtitle, seat, legend = [] }) {
   const rows = layout(chart, view);
-  const labelW = 64;
+  const labelW = 48;
   const cellW = 104;
   const cellH = 60;
   const pad = 20;
   const top = pad + (title ? 34 : 0) + (subtitle ? 26 : 0) + (title || subtitle ? 10 : 0);
-  const gridW = labelW + cellW * chart.cols;
+  const gridW = labelW * 2 + cellW * chart.cols; // row labels on both sides
   const gridH = cellH * rows.length;
   const legendH = legend.length ? 40 : 0;
   const width = gridW + pad * 2;

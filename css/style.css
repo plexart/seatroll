@@ -507,7 +507,8 @@ textarea {
 }
 .seatgrid {
   display: grid;
-  grid-template-columns: 1.6em repeat(var(--half-cols), minmax(0, 1fr));
+  --label-w: 1.6em;
+  grid-template-columns: var(--label-w) repeat(var(--half-cols), minmax(0, 1fr)) var(--label-w);
   gap: 4px;
   font-size: 12.5px;
 }
@@ -524,14 +525,6 @@ textarea {
   line-height: 1.2;
   text-align: center;
   word-break: break-all;
-}
-/* Each seat column is two half-columns, so the podium row can sit half a column over. */
-.seatgrid > .cell {
-  grid-column: span 2;
-}
-.seatgrid > .cell-corner,
-.seatgrid > .cell-rowLabel {
-  grid-column: span 1;
 }
 button.cell {
   cursor: pointer;
@@ -824,7 +817,7 @@ button.cell {
 @media (min-width: 720px) {
   .seatgrid {
     font-size: 15px;
-    grid-template-columns: 2.4em repeat(var(--half-cols), minmax(0, 1fr));
+    --label-w: 2.4em;
     gap: 5px;
   }
   .cell {
