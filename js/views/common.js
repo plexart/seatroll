@@ -77,30 +77,51 @@ export function sessionSelect(items, index, onPick) {
       rows.push(row);
       groups.push(row);
     });
+    // With a mouse, drop down from the trigger like a select; on touch screens, a bottom sheet.
+    const dropdown = matchMedia('(hover: hover) and (pointer: fine)').matches;
     const dialog = h(
       'dialog',
       {
-        class: 'sheet',
+        class: dropdown ? 'sheet dropdown' : 'sheet',
         // A click on the dialog itself (not its content) is a click on the backdrop.
         onClick: (e) => e.target === dialog && dialog.close(),
-        onClose: () => dialog.remove(),
+        onClose: () => {
+          removeEventListener('resize', close);
+          dialog.remove();
+        },
       },
       h(
         'div',
         { class: 'sheet-body' },
-        h('div', { class: 'sheet-title' }, t('session.choose')),
+        dropdown ? null : h('div', { class: 'sheet-title' }, t('session.choose')),
         groups,
       ),
     );
+    const close = () => dialog.close();
+    if (dropdown) {
+      const r = trigger.getBoundingClientRect();
+      const below = innerHeight - r.bottom - 8;
+      const above = r.top - 8;
+      const up = below < 240 && above > below;
+      Object.assign(dialog.style, {
+        left: `${r.left}px`,
+        width: `${r.width}px`,
+        maxHeight: `${Math.min(up ? above : below, 480)}px`,
+        ...(up ? { bottom: `${innerHeight - r.top + 4}px` } : { top: `${r.bottom + 4}px` }),
+      });
+      addEventListener('resize', close);
+    }
     document.body.append(dialog);
     dialog.showModal();
-    rows[index]?.scrollIntoView({ block: 'center' });
+    const row = rows[index];
+    if (row) dialog.scrollTop = row.offsetTop - (dialog.clientHeight - row.offsetHeight) / 2;
   };
-  return h(
+  const trigger = h(
     'button',
     { type: 'button', class: 'select-trigger', 'aria-haspopup': 'dialog', onClick: open },
     h('span', {}, current ? sessionLabel(current.date, current.slot) : ''),
   );
+  return trigger;
 }
 
 /**

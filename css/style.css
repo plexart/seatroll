@@ -506,6 +506,28 @@ dialog.sheet {
 dialog.sheet::backdrop {
   background: rgb(0 0 0 / 0.4);
 }
+dialog.sheet.dropdown {
+  position: fixed;
+  margin: 0;
+  max-width: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
+}
+dialog.sheet.dropdown::backdrop {
+  background: transparent;
+}
+dialog.sheet.dropdown .sheet-body {
+  padding: 4px 0;
+}
+dialog.sheet.dropdown .sheet-date {
+  padding: 8px 12px 2px;
+  font-size: 12px;
+}
+dialog.sheet.dropdown .sheet-row {
+  min-height: 34px;
+  padding: 6px 12px;
+}
 .sheet-body {
   padding: 0 0 calc(8px + env(safe-area-inset-bottom));
 }
@@ -542,6 +564,7 @@ dialog.sheet::backdrop {
   outline: 2px solid var(--primary);
   outline-offset: -2px;
 }
+.sheet-row:hover,
 .sheet-row:active {
   background: var(--bg);
 }
