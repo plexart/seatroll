@@ -183,24 +183,84 @@ export function renderSeatEditor(container, ctx) {
     return ids;
   };
 
-  const update = (next) => {
-    history.push(chart);
-    if (history.length > 50) history.shift();
-    changed = movedStudents(chart, next);
+  // Where each student's name is on screen right now: their seat cell or tray chip.
+  const studentElement = (sid) => {
+    const key = seatMap(chart).get(sid);
+    return key
+      ? container.querySelector(`.seatgrid [data-key="${CSS.escape(key)}"]`)
+      : container.querySelector(`.chip[data-sid="${CSS.escape(sid)}"]`);
+  };
+  const snapshot = (ids) => {
+    const rects = new Map();
+    for (const sid of ids) {
+      const rect = studentElement(sid)?.getBoundingClientRect();
+      if (rect) rects.set(sid, rect);
+    }
+    return rects;
+  };
+
+  // FLIP: each moved name starts where it was and glides to its new place. For a whole-chart
+  // shift (`slide`), the one-step direction is the median move; names that wrapped around to
+  // the other end slide in from just outside instead of flying back across the chart.
+  const playMoves = (before, slide) => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const moves = [];
+    for (const [sid, from] of before) {
+      const el = studentElement(sid);
+      if (!el) continue;
+      const to = el.getBoundingClientRect();
+      const dx = from.left - to.left;
+      const dy = from.top - to.top;
+      if (dx || dy) moves.push({ el, dx, dy });
+    }
+    const median = (values) => values.sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0;
+    const mx = slide ? median(moves.map((m) => -m.dx)) : 0;
+    const my = slide ? median(moves.map((m) => -m.dy)) : 0;
+    const timing = { duration: 380, easing: 'cubic-bezier(.2, .8, .2, 1)' };
+    for (const { el, dx, dy } of moves) {
+      if (slide && -dx * mx + -dy * my < 0) {
+        el.animate(
+          [{ transform: `translate(${-mx}px, ${-my}px)`, opacity: 0 }, { opacity: 1 }],
+          timing,
+        );
+      } else {
+        el.animate(
+          [
+            {
+              transform: `translate(${dx}px, ${dy}px) scale(1.08)`,
+              zIndex: 2,
+              boxShadow: '0 6px 16px rgb(0 0 0 / 0.25)',
+            },
+            { transform: 'none', zIndex: 2 },
+          ],
+          timing,
+        );
+      }
+    }
+  };
+
+  // Switches to `next` and animates the students that moved.
+  const show = (next, slide) => {
+    const ids = movedStudents(chart, next);
+    const before = snapshot(ids);
+    changed = ids;
     chart = next;
     selection = null;
     storeDraft(chart);
     draw();
+    playMoves(before, slide);
+  };
+
+  const update = (next, { slide = false } = {}) => {
+    history.push({ chart, slide });
+    if (history.length > 50) history.shift();
+    show(next, slide);
   };
 
   const undo = () => {
     if (!history.length) return;
     const prev = history.pop();
-    changed = movedStudents(chart, prev);
-    chart = prev;
-    selection = null;
-    storeDraft(chart);
-    draw();
+    show(prev.chart, prev.slide);
   };
 
   // --- arrange mode taps
@@ -286,12 +346,20 @@ export function renderSeatEditor(container, ctx) {
       { class: 'shift-bar' },
       h(
         'button',
-        { type: 'button', class: 'btn small', onClick: () => update(shiftRows(chart, -1)) },
+        {
+          type: 'button',
+          class: 'btn small',
+          onClick: () => update(shiftRows(chart, -1), { slide: true }),
+        },
         t('seats.shiftForward'),
       ),
       h(
         'button',
-        { type: 'button', class: 'btn small', onClick: () => update(shiftRows(chart, 1)) },
+        {
+          type: 'button',
+          class: 'btn small',
+          onClick: () => update(shiftRows(chart, 1), { slide: true }),
+        },
         t('seats.shiftBackward'),
       ),
       h(
@@ -299,7 +367,7 @@ export function renderSeatEditor(container, ctx) {
         {
           type: 'button',
           class: 'btn small',
-          onClick: () => update(shiftCols(chart, screenToColDelta(view, -1))),
+          onClick: () => update(shiftCols(chart, screenToColDelta(view, -1)), { slide: true }),
         },
         t('seats.shiftLeft'),
       ),
@@ -308,7 +376,7 @@ export function renderSeatEditor(container, ctx) {
         {
           type: 'button',
           class: 'btn small',
-          onClick: () => update(shiftCols(chart, screenToColDelta(view, 1))),
+          onClick: () => update(shiftCols(chart, screenToColDelta(view, 1)), { slide: true }),
         },
         t('seats.shiftRight'),
       ),
@@ -358,6 +426,7 @@ export function renderSeatEditor(container, ctx) {
                   ]
                     .filter(Boolean)
                     .join(' '),
+                  dataset: { sid: s.id },
                   onClick: () => tapTray(s.id),
                 },
                 s.name,

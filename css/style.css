@@ -622,7 +622,8 @@ button.cell {
 }
 .cell.changed,
 .chip.changed {
-  animation: seat-changed 1.6s ease-out;
+  /* starts lit while the name glides over, holds after it lands, then fades */
+  animation: seat-changed 1.4s ease-out 0.3s backwards;
 }
 @media (prefers-reduced-motion: reduce) {
   .cell.changed,
