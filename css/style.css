@@ -720,9 +720,6 @@ button.cell {
     inset 0 0 0 1px var(--seat-edge),
     0 1px 1px rgb(0 0 0 / 0.06);
 }
-.cell-seat[data-key^='f:'] {
-  background: var(--podium-row);
-}
 .cell-name {
   font-weight: 600;
 }

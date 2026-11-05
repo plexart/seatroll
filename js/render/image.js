@@ -14,7 +14,6 @@ const COLORS = {
   header: '#3d6fa8',
   headerText: '#ffffff',
   podium: '#e9a14a',
-  podiumRow: '#f6d9b0',
   seat: '#eef4fb',
 };
 
@@ -111,11 +110,10 @@ export function chartImage(chart, view, { title, subtitle, seat, legend = [] }) 
         fill = '#d1d5db';
       } else {
         const info = seat(cell) ?? {};
-        fill = info.fill ?? (isFront ? COLORS.podiumRow : COLORS.seat);
+        fill = info.fill ?? COLORS.seat;
         color = info.color ?? COLORS.text;
         text = info.text ?? '';
         sub = info.sub ?? '';
-        if (isFront && !info.fill) weight = 'bold';
       }
       ctx.fillStyle = fill;
       ctx.fillRect(x, cy, w, cellH);
