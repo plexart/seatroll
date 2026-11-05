@@ -219,8 +219,17 @@
   "students.restore": "恢复",
 
   "install.title": "安装到手机",
-  "install.hint": "安装后可以像 App 一样从桌面打开，没有网络也能使用。",
+  "install.hint": "安装后可以像 App 一样从桌面打开。",
   "install.iosHint": "在 Safari 中点“分享”按钮，再选“添加到主屏幕”。",
   "install.button": "安装",
-  "install.done": "已安装"
+  "install.done": "已安装",
+
+  "wechat.title": "请在浏览器中打开",
+  "wechat.reason": "微信里无法导出数据，而且在微信里录入的数据不会出现在浏览器中。",
+  "wechat.step1": "点右上角的 ··· 按钮",
+  "wechat.step2": "选择“在浏览器打开”",
+  "wechat.step2Ios": "选择“在 Safari 中打开”",
+  "wechat.installTip": "打开后可以到「设置 → 安装到手机」安装，像 App 一样从桌面打开。",
+  "wechat.copyLink": "复制链接",
+  "wechat.copied": "已复制，粘贴到浏览器地址栏打开"
 }

@@ -34,7 +34,8 @@ Demo: open the site, pick **示例班级** and enter the password `demo`.
   overview; as text or images.
 - **Import** — changeset files exported by other volunteers can be imported directly, so
   everyone sees the latest data before it is merged into the repository.
-- **Installable PWA** that works offline.
+- **Installable PWA** that works offline. Opened inside WeChat (which can't save files and keeps
+  its own storage), the app only shows a guide to open it in the system browser.
 
 ## Data workflow
 

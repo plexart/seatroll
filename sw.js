@@ -39,6 +39,7 @@ const ASSETS = [
   'js/views/seats.js',
   'js/views/settings.js',
   'js/views/students.js',
+  'js/views/wechat.js',
 ];
 
 self.addEventListener('install', (event) => {

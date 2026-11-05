@@ -866,3 +866,31 @@ button.cell {
     min-height: 56px;
   }
 }
+
+/* ---------- WeChat guide ---------- */
+.wechat-arrow {
+  position: fixed;
+  top: 4px;
+  right: 16px;
+  z-index: 11;
+  color: var(--primary);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+}
+.wechat-guide {
+  max-width: 420px;
+  margin: 48px auto 0;
+  padding: 20px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.wechat-guide h2 {
+  margin-top: 0;
+}
+.wechat-steps {
+  padding-left: 1.4em;
+  font-size: 17px;
+  line-height: 1.8;
+}

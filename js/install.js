@@ -32,6 +32,11 @@ export function isIOS() {
   );
 }
 
+/** WeChat's in-app browser (also WeCom): it cannot download or share files. */
+export function isWeChat() {
+  return /MicroMessenger/i.test(navigator.userAgent);
+}
+
 export function canPromptInstall() {
   return deferredPrompt !== null;
 }

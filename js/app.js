@@ -1,7 +1,7 @@
 import { applyI18n, loadLocale, t } from './i18n.js';
 import { setChildren, h } from './dom.js';
 import { fetchClasses, openClass, savedClassId, savedPassword, state } from './store.js';
-import './install.js';
+import { isWeChat } from './install.js';
 import { renderLogin } from './views/login.js';
 import { renderCheckin } from './views/checkin.js';
 import { renderSeatList, renderSeatEditor } from './views/seats.js';
@@ -9,6 +9,7 @@ import { renderLeaves } from './views/leaves.js';
 import { renderReport } from './views/report.js';
 import { renderSettings } from './views/settings.js';
 import { renderStudents } from './views/students.js';
+import { renderWeChatGuide } from './views/wechat.js';
 
 const DEFAULT_LANG = 'zh-CN';
 
@@ -103,6 +104,14 @@ async function boot() {
   await loadLocale(DEFAULT_LANG);
   applyI18n(document);
   document.getElementById('apple-title').content = t('app.title');
+  // Exporting does not work in WeChat, and its storage is separate from the system browser's,
+  // so data entered there would be stuck. Send the user to a real browser instead.
+  if (isWeChat()) {
+    titleEl.textContent = t('app.title');
+    document.title = t('app.title');
+    renderWeChatGuide(viewEl);
+    return;
+  }
   classEl.onclick = () => navigate('/login');
   window.addEventListener('hashchange', () => {
     navigatedInApp = true;
