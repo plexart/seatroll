@@ -93,6 +93,27 @@ A script asks for a missing password once and saves it there. See `.env.example`
   Anyone with access to that browser can read it. Use "退出并忘记密码" in Settings on shared
   devices. Changing a password (`npm run passwd`) invalidates saved passwords.
 
+## Testing on a phone
+
+Browsers only allow WebCrypto (and service workers) in a secure context: `https://`, or
+`http://localhost` on the same machine. Opening a dev server by its LAN address, such as
+`http://192.168.1.10:8080`, shows "当前地址不安全" and cannot decrypt the data. Options:
+
+- Push to a GitHub Pages branch and open the `https://` site.
+- Serve over HTTPS with a self-signed certificate (the phone shows a warning you have to
+  accept; the service worker will not register with an untrusted certificate):
+
+  ```sh
+  mkdir -p private
+  openssl req -x509 -newkey rsa:2048 -nodes -days 30 -subj "/CN=seatroll-dev" \
+    -keyout private/key.pem -out private/cert.pem
+  npx http-server -S -C private/cert.pem -K private/key.pem -c-1
+  # open https://<computer-ip>:8080 on the phone
+  ```
+
+- Android Chrome only: add the LAN address to
+  `chrome://flags/#unsafely-treat-insecure-origin-as-secure`.
+
 ## Deploying to GitHub Pages
 
 1. Push the repository to GitHub.

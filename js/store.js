@@ -90,8 +90,17 @@ export function savedPassword(classId) {
   return read(passwordKey(classId));
 }
 
+/**
+ * WebCrypto is only available in secure contexts: HTTPS, or http://localhost. A plain
+ * http:// LAN address (e.g. a dev server opened on a phone) cannot decrypt the data.
+ */
+export function cryptoAvailable() {
+  return Boolean(globalThis.crypto?.subtle);
+}
+
 /** Loads and decrypts a class. On success the class and password are remembered. */
 export async function openClass(cls, password) {
+  if (!cryptoAvailable()) throw new LoadError('insecure');
   let envelope;
   try {
     const res = await fetch(cls.file, { cache: 'no-cache' });

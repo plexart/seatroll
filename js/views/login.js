@@ -2,7 +2,14 @@
 
 import { h, setChildren } from '../dom.js';
 import { t } from '../i18n.js';
-import { fetchClasses, openClass, savedClassId, savedPassword, state } from '../store.js';
+import {
+  cryptoAvailable,
+  fetchClasses,
+  openClass,
+  savedClassId,
+  savedPassword,
+  state,
+} from '../store.js';
 
 export function renderLogin(container, ctx) {
   const intro = h('p', { class: 'muted' }, t('login.intro'));
@@ -14,6 +21,11 @@ export function renderLogin(container, ctx) {
     placeholder: t('login.passwordPlaceholder'),
   });
   const error = h('p', { class: 'error', hidden: true });
+  if (!cryptoAvailable()) {
+    // Say so up front instead of failing after the password is entered.
+    error.textContent = t('login.error.insecure');
+    error.hidden = false;
+  }
   const submit = h('button', { type: 'submit', class: 'btn primary block' }, t('login.submit'));
   const cancel = state.cls
     ? h(

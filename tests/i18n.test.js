@@ -54,7 +54,7 @@ test('every literal i18n key used in the source exists in zh-CN', () => {
 test('dynamic i18n key families are complete', () => {
   const expected = [
     ...['leave', 'absent', 'came'].map((s) => `status.${s}`),
-    ...['network', 'wrongPassword', 'corrupt'].map((c) => `login.error.${c}`),
+    ...['network', 'wrongPassword', 'corrupt', 'insecure'].map((c) => `login.error.${c}`),
     ...['notChangeset', 'invalidRecord', 'otherClass'].map((c) => `import.error.${c}`),
     ...['students', 'seatCharts', 'leaves', 'attendance'].map((c) => `collection.${c}`),
     'view.podium',
