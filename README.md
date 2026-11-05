@@ -28,9 +28,9 @@ Demo: open the site, pick **示例班级** and enter the password `demo`.
   occupant goes back to the tray. The layout (rows, columns, cells without a desk, seats beside
   the podium, and whether column 1 is on the left or right, as seen in the current view) is
   editable; the podium is always centred. Charts can be saved as images.
-- **Leave** — regular weeks have three sessions (Friday evening 18:30–22:00, Saturday morning
-  08:00–12:00 and afternoon 14:00–16:45). The "specific date" mode uses the same three time
-  slots on any date, for make-up lessons during holidays.
+- **Leave** — shows the listed sessions of one week: regular ones (Friday evening, Saturday
+  morning and afternoon) and holiday make-up lessons alike. Paste rows from a spreadsheet (name,
+  reason, sessions such as "周五晚上,周六上午"), then check or fix them in the grid.
 - **Reports** — one session's sheet, per-student statistics over a date range, and a leave
   overview; as text or images.
 - **Import** — changeset files exported by other volunteers can be imported directly, so
@@ -158,7 +158,7 @@ data/<id>.enc.json      encrypted class data
 js/app.js               entry point and hash router
 js/crypto.js            encryption (browser + Node)
 js/chart.js             seat chart model: shifts, placing, layout per view
-js/sessions.js          time slots and session resolution
+js/sessions.js          time slots, schedule and the session list
 js/data.js              data model, merging, reports
 js/store.js             open class, local overlay, import/export
 js/render/              seat grid DOM and canvas images

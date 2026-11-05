@@ -18,9 +18,9 @@ import { isDateStr, isTimestamp } from './dates.js';
 import {
   DEFAULT_SCHEDULE,
   DEFAULT_SLOTS,
+  listSessions,
   sessionKey,
   sessionStart,
-  sortSlots,
 } from './sessions.js';
 
 export const CHANGESET_TYPE = 'seatroll-changeset';
@@ -197,10 +197,10 @@ export function activeStudents(data) {
 /**
  * Parses leave rows copied from a spreadsheet: name, reason, sessions (e.g. "周五晚上,周六上午"),
  * tab-separated as Excel copies them (whitespace-separated also works). A header row (first cell
- * containing "姓名") and blank lines are skipped. `slotAliases` maps session words to slot ids;
- * an empty sessions cell means every shown session (slotIds: null).
+ * containing "姓名") and blank lines are skipped. `aliases` maps session words to session keys;
+ * an empty sessions cell means every shown session (sessionKeys: null).
  */
-export function parseLeavePaste(text, students, slotAliases) {
+export function parseLeavePaste(text, students, aliases) {
   const byName = new Map(students.map((s) => [s.name, s.id]));
   const entries = [];
   const unknownNames = [];
@@ -224,18 +224,18 @@ export function parseLeavePaste(text, students, slotAliases) {
       .join(' ')
       .split(/[\s,，、;；/]+/)
       .filter(Boolean);
-    let slotIds = null;
+    let sessionKeys = null;
     if (words.length) {
-      slotIds = [];
+      sessionKeys = [];
       for (const w of words) {
-        const slot = slotAliases.get(w);
-        if (slot) {
-          if (!slotIds.includes(slot)) slotIds.push(slot);
+        const key = aliases.get(w);
+        if (key) {
+          if (!sessionKeys.includes(key)) sessionKeys.push(key);
         } else unknownSlots.push(w);
       }
-      if (!slotIds.length) continue;
+      if (!sessionKeys.length) continue;
     }
-    entries.push({ studentId: id, note, slotIds });
+    entries.push({ studentId: id, note, sessionKeys });
   }
   return {
     entries,
@@ -251,7 +251,8 @@ export function parseLeavePaste(text, students, slotAliases) {
 export function pastedLeaves(data, sessions, entries, updatedAt) {
   const changed = new Map();
   for (const session of sessions) {
-    const adding = entries.filter((e) => !e.slotIds || e.slotIds.includes(session.slot.id));
+    const key = sessionKey(session.date, session.slot.id);
+    const adding = entries.filter((e) => !e.sessionKeys || e.sessionKeys.includes(key));
     if (!adding.length) continue;
     const existing = findLeave(data, session.date, session.slot.id)?.students ?? [];
     const students = new Map(existing.map((s) => [s.id, s]));
@@ -260,7 +261,7 @@ export function pastedLeaves(data, sessions, entries, updatedAt) {
       const n = note || keep;
       students.set(studentId, n ? { id: studentId, note: n } : { id: studentId });
     }
-    changed.set(`${session.date}|${session.slot.id}`, {
+    changed.set(key, {
       date: session.date,
       slot: session.slot.id,
       students: [...students.values()],
@@ -323,18 +324,12 @@ export function sessionSummary(data, date, slotId) {
   };
 }
 
-/** Sessions (date + slot id) that have a check-in record or leaves within [from, to]. */
+/** Listed sessions (date + slot id) within [from, to] that have a check-in record or leaves. */
 export function sessionsInRange(data, from, to) {
-  const keys = new Map();
-  for (const r of [...data.attendance, ...data.leaves]) {
-    if (r.date >= from && r.date <= to && findSlot(data, r.slot)) {
-      keys.set(sessionKey(r.date, r.slot), { date: r.date, slot: r.slot });
-    }
-  }
-  const order = new Map(sortSlots(data.slots).map((s, i) => [s.id, i]));
-  return [...keys.values()].sort((a, b) =>
-    a.date === b.date ? order.get(a.slot) - order.get(b.slot) : a.date < b.date ? -1 : 1,
-  );
+  const used = new Set([...data.attendance, ...data.leaves].map((r) => sessionKey(r.date, r.slot)));
+  return listSessions(data, from, to)
+    .filter((s) => used.has(sessionKey(s.date, s.slot.id)))
+    .map((s) => ({ date: s.date, slot: s.slot.id }));
 }
 
 /** Sessions that have a check-in record, newest first. */

@@ -29,6 +29,11 @@ function sampleData() {
     chart = assign(chart, mainKey(0, i), s.id).chart;
   });
   data.seatCharts = [{ ...chart, updatedAt: T1 }];
+  data.sessions = [
+    { date: '2026-11-06', slot: 'eve' },
+    { date: '2026-11-07', slot: 'am' },
+    { date: '2026-11-07', slot: 'pm' },
+  ];
   data.leaves = [
     { date: '2026-11-06', slot: 'eve', students: [{ id: 's1', note: '病假' }], updatedAt: T1 },
   ];
@@ -123,12 +128,13 @@ test('validateChangeset', () => {
   );
 });
 
-test('checkedSessions lists checked-in sessions newest first', () => {
+test('checkedSessions lists checked-in listed sessions newest first', () => {
   const data = sampleData();
   data.attendance.push(
     { date: '2026-11-07', slot: 'pm', marks: {}, updatedAt: T1 },
     { date: '2026-11-07', slot: 'gone', marks: {}, updatedAt: T1 },
     { date: '2026-11-07', slot: 'am', marks: {}, updatedAt: T1 },
+    { date: '2026-11-08', slot: 'am', marks: {}, updatedAt: T1 }, // not listed
   );
   data.leaves.push({ date: '2026-11-09', slot: 'eve', students: [], updatedAt: T1 });
   assert.deepEqual(checkedSessions(data), [
@@ -141,12 +147,16 @@ test('checkedSessions lists checked-in sessions newest first', () => {
 test('rangeReport counts presence only for checked sessions', () => {
   const data = sampleData();
   data.leaves.push({ date: '2026-11-07', slot: 'am', students: [{ id: 's0' }], updatedAt: T1 });
+  // Records for sessions that are not listed are left out.
+  data.leaves.push({ date: '2026-11-14', slot: 'am', students: [{ id: 's3' }], updatedAt: T1 });
+  data.attendance.push({ date: '2026-11-14', slot: 'am', marks: {}, updatedAt: T1 });
   const report = rangeReport(data, '2026-11-01', '2026-11-30');
   assert.equal(report.sessions.length, 2);
   const by = Object.fromEntries(report.students.map((s) => [s.id, s]));
   assert.deepEqual([by.s0.present, by.s0.leave], [1, 1]);
   assert.deepEqual([by.s2.absent, by.s2.present], [1, 0]);
   assert.deepEqual([by.s1.leave, by.s1.presentOnLeave], [1, 1]);
+  assert.deepEqual([by.s3.leave, by.s3.present], [0, 1]);
 });
 
 test('leaveOverview lists non-empty leave records in range', () => {
@@ -163,9 +173,9 @@ test('parseLeavePaste reads rows copied from a spreadsheet', () => {
     { id: 'b', name: '方可瑶' },
   ];
   const aliases = new Map([
-    ['周五晚上', 'eve'],
-    ['周六上午', 'am'],
-    ['周六下午', 'pm'],
+    ['周五晚上', '2026-11-06|eve'],
+    ['周六上午', '2026-11-07|am'],
+    ['周六下午', '2026-11-07|pm'],
   ]);
   const text = [
     '学生姓名\t请假原因\t请假时间段',
@@ -178,17 +188,21 @@ test('parseLeavePaste reads rows copied from a spreadsheet', () => {
   ].join('\r\n');
   assert.deepEqual(parseLeavePaste(text, students, aliases), {
     entries: [
-      { studentId: 'a', note: '上辅导班', slotIds: ['eve', 'am', 'pm'] },
-      { studentId: 'b', note: '理疗', slotIds: ['eve', 'pm'] },
-      { studentId: 'a', note: '', slotIds: null },
-      { studentId: 'b', note: '', slotIds: ['am'] },
+      {
+        studentId: 'a',
+        note: '上辅导班',
+        sessionKeys: ['2026-11-06|eve', '2026-11-07|am', '2026-11-07|pm'],
+      },
+      { studentId: 'b', note: '理疗', sessionKeys: ['2026-11-06|eve', '2026-11-07|pm'] },
+      { studentId: 'a', note: '', sessionKeys: null },
+      { studentId: 'b', note: '', sessionKeys: ['2026-11-07|am'] },
     ],
     unknownNames: ['王五'],
     unknownSlots: ['周日上午'],
   });
   // Without tabs, cells split on whitespace.
   assert.deepEqual(parseLeavePaste('褚沐    理疗    周五晚上', students, aliases).entries, [
-    { studentId: 'a', note: '理疗', slotIds: ['eve'] },
+    { studentId: 'a', note: '理疗', sessionKeys: ['2026-11-06|eve'] },
   ]);
 });
 
@@ -199,8 +213,8 @@ test('pastedLeaves adds to existing leaves and keeps notes unless replaced', () 
     { date: '2026-11-07', slot: { id: 'am' } },
   ];
   const entries = [
-    { studentId: 's1', note: '', slotIds: ['eve'] },
-    { studentId: 's2', note: '理疗', slotIds: null },
+    { studentId: 's1', note: '', sessionKeys: ['2026-11-06|eve'] },
+    { studentId: 's2', note: '理疗', sessionKeys: null },
   ];
   assert.deepEqual(pastedLeaves(data, sessions, entries, T2), [
     {

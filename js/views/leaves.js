@@ -1,19 +1,18 @@
-// Leave editor. Leaves are mostly entered by pasting rows from a spreadsheet (name, reason,
-// sessions) into the shown week or date; the grid below is for checking and small fixes.
-// "Weekly" shows the regular sessions of one week (Friday evening, Saturday morning and
-// afternoon); "specific date" shows all slots on one date, for holiday make-up lessons. Tapping a cell toggles leave for that student and session; changes save at once.
+// Leave editor for the listed sessions of one Monday-to-Sunday week (regular sessions and
+// holiday make-up lessons alike). Leaves are mostly entered by pasting rows from a spreadsheet
+// (name, reason, sessions); the grid below is for checking and small fixes. Tapping a cell
+// toggles leave for that student and session; changes save at once.
 
 import { activeStudents, findLeave, now, parseLeavePaste, pastedLeaves } from '../data.js';
-import { addDays, toDateStr, toTimeStr } from '../dates.js';
+import { addDays, toDateStr, toTimeStr, weekRange } from '../dates.js';
 import { h, setChildren, toast } from '../dom.js';
 import { formatShortDate, sessionName, slotPart } from '../format.js';
 import { t } from '../i18n.js';
-import { daySessions, defaultLeaveWeek, weekSessions, weekStartDate } from '../sessions.js';
+import { listSessions, nextSessionDate, sessionKey } from '../sessions.js';
 import { commit, isUnmerged, onChange, state } from '../store.js';
-import { exportCollections, segmented } from './common.js';
+import { exportCollections } from './common.js';
 
 // Kept across page switches.
-let mode = 'week';
 let date = null;
 let filter = '';
 let pasteText = '';
@@ -22,7 +21,7 @@ let pasteProblems = [];
 export function renderLeaves(container) {
   if (!date) {
     const d = new Date();
-    date = defaultLeaveWeek(state.data.slots, state.data.schedule, toDateStr(d), toTimeStr(d));
+    date = nextSessionDate(listSessions(state.data), toDateStr(d), toTimeStr(d));
   }
 
   const setLeave = (session, studentId, on, note) => {
@@ -33,12 +32,8 @@ export function renderLeaves(container) {
   };
 
   const draw = () => {
-    // Show the week by its first session's date so the ±7-day steps stay on that weekday.
-    if (mode === 'week') date = weekStartDate(state.data.slots, state.data.schedule, date);
-    const sessions =
-      mode === 'week'
-        ? weekSessions(state.data.slots, state.data.schedule, date)
-        : daySessions(state.data.slots, date);
+    const week = weekRange(date);
+    const sessions = listSessions(state.data, week.from, week.to);
     const leaveSets = sessions.map((s) => {
       const leave = findLeave(state.data, s.date, s.slot.id);
       return new Map((leave?.students ?? []).map((x) => [x.id, x.note ?? '']));
@@ -77,7 +72,7 @@ export function renderLeaves(container) {
       h(
         'th',
         {},
-        h('div', {}, mode === 'week' ? sessionName(s.date, s.slot) : slotPart(s.slot)),
+        h('div', {}, sessionName(s.date, s.slot)),
         h('div', { class: 'muted small' }, formatShortDate(s.date)),
       ),
     );
@@ -151,25 +146,25 @@ export function renderLeaves(container) {
     const pasteInput = h('textarea', {
       rows: 6,
       value: pasteText,
-      placeholder: t(
-        mode === 'week' ? 'leaves.pastePlaceholderWeek' : 'leaves.pastePlaceholderDay',
-      ),
+      placeholder: t('leaves.pastePlaceholder'),
       onInput: (e) => {
         pasteText = e.target.value;
       },
     });
     const register = () => {
       if (!pasteText.trim()) return;
+      // "周五晚上" names a session of the week; a bare "晚上" works when only one session has it.
       const aliases = new Map();
+      const parts = new Map();
       for (const s of sessions) {
-        aliases.set(sessionName(s.date, s.slot), s.slot.id);
-        aliases.set(slotPart(s.slot), s.slot.id);
+        const key = sessionKey(s.date, s.slot.id);
+        aliases.set(sessionName(s.date, s.slot), key);
+        const part = slotPart(s.slot);
+        parts.set(part, parts.has(part) ? null : key);
       }
-      const shown = new Set(sessions.map((s) => s.slot.id));
+      for (const [part, key] of parts) if (key && !aliases.has(part)) aliases.set(part, key);
       const parsed = parseLeavePaste(pasteText, activeStudents(state.data), aliases);
-      const entries = parsed.entries.filter(
-        (e) => !e.slotIds || e.slotIds.some((id) => shown.has(id)),
-      );
+      const entries = parsed.entries;
       pasteProblems = [
         parsed.unknownNames.length &&
           t('leaves.pasteUnknownNames', { names: parsed.unknownNames.join('、') }),
@@ -188,65 +183,59 @@ export function renderLeaves(container) {
       return leave && isUnmerged('leaves', leave);
     });
 
+    const content = sessions.length
+      ? [
+          h(
+            'section',
+            { class: 'card' },
+            h('h2', {}, t('leaves.paste')),
+            pasteInput,
+            pasteProblems.map((p) => h('p', { class: 'warn-text small' }, p)),
+            h(
+              'div',
+              { class: 'actions' },
+              h(
+                'button',
+                { type: 'button', class: 'btn primary', onClick: register },
+                t('leaves.pasteButton'),
+              ),
+            ),
+          ),
+          h('h2', {}, t('leaves.grid')),
+          h('p', { class: 'hint' }, t('leaves.hint')),
+          filterInput,
+          h(
+            'div',
+            { class: 'table-scroll' },
+            h(
+              'table',
+              { class: 'leave-table' },
+              h('thead', {}, h('tr', {}, h('th', {}, t('leaves.student')), headerCells)),
+              h('tbody', {}, rows),
+            ),
+          ),
+          notes.length
+            ? h('section', { class: 'card' }, h('h2', {}, t('leaves.notes')), notes)
+            : null,
+          unmerged ? h('p', { class: 'muted small' }, t('common.unmergedHint')) : null,
+        ]
+      : h('p', { class: 'empty' }, t('leaves.noSessions'));
+
     setChildren(
       container,
-      segmented(
-        [
-          { value: 'week', label: t('leaves.modeWeek') },
-          { value: 'day', label: t('leaves.modeDay') },
-        ],
-        mode,
-        (m) => {
-          mode = m;
-          draw();
-        },
-      ),
       h(
         'div',
         { class: 'row date-nav' },
-        h(
-          'button',
-          { type: 'button', class: 'btn small', onClick: step(mode === 'week' ? -7 : -1) },
-          '‹',
-        ),
+        h('button', { type: 'button', class: 'btn small', onClick: step(-7) }, '‹'),
         dateInput,
-        h(
-          'button',
-          { type: 'button', class: 'btn small', onClick: step(mode === 'week' ? 7 : 1) },
-          '›',
-        ),
+        h('button', { type: 'button', class: 'btn small', onClick: step(7) }, '›'),
       ),
       h(
-        'section',
-        { class: 'card' },
-        h('h2', {}, t('leaves.paste')),
-        pasteInput,
-        pasteProblems.map((p) => h('p', { class: 'warn-text small' }, p)),
-        h(
-          'div',
-          { class: 'actions' },
-          h(
-            'button',
-            { type: 'button', class: 'btn primary', onClick: register },
-            t('leaves.pasteButton'),
-          ),
-        ),
+        'p',
+        { class: 'muted small' },
+        t('leaves.week', { from: formatShortDate(week.from), to: formatShortDate(week.to) }),
       ),
-      h('h2', {}, t('leaves.grid')),
-      h('p', { class: 'hint' }, t(mode === 'week' ? 'leaves.hintWeek' : 'leaves.hintDay')),
-      filterInput,
-      h(
-        'div',
-        { class: 'table-scroll' },
-        h(
-          'table',
-          { class: 'leave-table' },
-          h('thead', {}, h('tr', {}, h('th', {}, t('leaves.student')), headerCells)),
-          h('tbody', {}, rows),
-        ),
-      ),
-      notes.length ? h('section', { class: 'card' }, h('h2', {}, t('leaves.notes')), notes) : null,
-      unmerged ? h('p', { class: 'muted small' }, t('common.unmergedHint')) : null,
+      content,
       h(
         'div',
         { class: 'actions' },

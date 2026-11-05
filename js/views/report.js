@@ -13,7 +13,7 @@ import { copyAndShareText, h, saveFile, setChildren, toast } from '../dom.js';
 import { formatDate, sessionLabel, slotPart } from '../format.js';
 import { t } from '../i18n.js';
 import { tableImage } from '../render/image.js';
-import { defaultLeaveWeek } from '../sessions.js';
+import { listSessions, nextSessionDate } from '../sessions.js';
 import { onChange, state } from '../store.js';
 import { exportName, segmented, sessionImage, sessionText } from './common.js';
 
@@ -26,9 +26,7 @@ export function renderReport(container) {
   const now = new Date();
   const today = toDateStr(now);
   range ??= monthRange(today);
-  leaveRange ??= weekRange(
-    defaultLeaveWeek(state.data.slots, state.data.schedule, today, toTimeStr(now)),
-  );
+  leaveRange ??= weekRange(nextSessionDate(listSessions(state.data), today, toTimeStr(now)));
 
   const draw = () => {
     const body =
