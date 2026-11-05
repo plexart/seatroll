@@ -93,7 +93,10 @@ export function chartImage(chart, view, { title, subtitle, seat, legend = [] }) 
         fill = COLORS.header;
         color = COLORS.headerText;
         weight = 'bold';
-        if (cell.kind === 'rowLabel' && isFront) fill = COLORS.podium;
+        if (cell.kind === 'rowLabel' && isFront) {
+          x += w; // the podium row has no row number, so its label cells stay blank
+          continue;
+        }
       } else if (cell.kind === 'podium') {
         fill = COLORS.podium;
         color = COLORS.headerText;
