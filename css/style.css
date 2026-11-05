@@ -611,6 +611,25 @@ button.cell {
 .cell.target {
   box-shadow: inset 0 0 0 2px var(--primary);
 }
+/* Students who just moved light up briefly, then fade back. */
+@keyframes seat-changed {
+  0%,
+  60% {
+    background: var(--warn-soft);
+    color: var(--warn);
+    box-shadow: inset 0 0 0 3px var(--warn);
+  }
+}
+.cell.changed,
+.chip.changed {
+  animation: seat-changed 1.6s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell.changed,
+  .chip.changed {
+    animation-duration: 0.6s;
+  }
+}
 .cell.layout-add {
   color: var(--muted);
   font-size: 18px;

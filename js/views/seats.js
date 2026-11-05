@@ -171,10 +171,22 @@ export function renderSeatEditor(container, ctx) {
   const history = [];
   let selection = null; // { type: 'tray', id } | { type: 'seat', key }
   let mode = 'arrange'; // 'arrange' | 'layout'
+  let changed = null; // ids of students whose seat changed in the last edit, to animate once
+
+  // Students seated somewhere else (or seated / unseated) in `next` compared to `prev`.
+  const movedStudents = (prev, next) => {
+    const before = seatMap(prev);
+    const after = seatMap(next);
+    const ids = new Set();
+    for (const [id, key] of after) if (before.get(id) !== key) ids.add(id);
+    for (const id of before.keys()) if (!after.has(id)) ids.add(id);
+    return ids;
+  };
 
   const update = (next) => {
     history.push(chart);
     if (history.length > 50) history.shift();
+    changed = movedStudents(chart, next);
     chart = next;
     selection = null;
     storeDraft(chart);
@@ -183,7 +195,9 @@ export function renderSeatEditor(container, ctx) {
 
   const undo = () => {
     if (!history.length) return;
-    chart = history.pop();
+    const prev = history.pop();
+    changed = movedStudents(chart, prev);
+    chart = prev;
     selection = null;
     storeDraft(chart);
     draw();
@@ -255,7 +269,12 @@ export function renderSeatEditor(container, ctx) {
       const target = selection && !selected;
       return {
         text: sid ? (names.get(sid)?.name ?? '?') : '',
-        className: [sid ? 'st-expected' : 'st-empty', selected && 'selected', target && 'target']
+        className: [
+          sid ? 'st-expected' : 'st-empty',
+          selected && 'selected',
+          target && 'target',
+          sid && changed?.has(sid) && 'changed',
+        ]
           .filter(Boolean)
           .join(' '),
         onClick: () => tapSeat(cell.key),
@@ -332,7 +351,13 @@ export function renderSeatEditor(container, ctx) {
                 'button',
                 {
                   type: 'button',
-                  class: `chip ${selection?.type === 'tray' && selection.id === s.id ? 'selected' : ''}`,
+                  class: [
+                    'chip',
+                    selection?.type === 'tray' && selection.id === s.id && 'selected',
+                    changed?.has(s.id) && 'changed',
+                  ]
+                    .filter(Boolean)
+                    .join(' '),
                   onClick: () => tapTray(s.id),
                 },
                 s.name,
@@ -462,6 +487,7 @@ export function renderSeatEditor(container, ctx) {
         h('button', { type: 'button', class: 'btn push-end', onClick: image }, t('common.image')),
       ),
     );
+    changed = null; // later redraws (e.g. selecting) don't replay the animation
   };
 
   draw();
