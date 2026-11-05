@@ -6,6 +6,7 @@ import {
   buildOutputRows,
   columnWidths,
   decodeText,
+  fillSheet,
   importedLeaves,
   leaveTableSvg,
   parseContacts,
@@ -83,8 +84,27 @@ test('columnWidths fits the widest text, CJK counting double', () => {
       ['姓名', 'a'],
       ['周五晚上,周六上午', 'abcdefghij'],
     ]),
-    [{ wch: 19 }, { wch: 12 }],
+    [21, 14],
   );
+});
+
+test('fillSheet styles the header and data cells', async () => {
+  const { default: ExcelJS } = await import('exceljs');
+  const sheet = new ExcelJS.Workbook().addWorksheet('t');
+  fillSheet(sheet, [
+    ['学生姓名', '家长手机号'],
+    ['甲', '13800000001'],
+  ]);
+  const header = sheet.getCell('A1');
+  const cell = sheet.getCell('B2');
+  assert.equal(header.font.bold, true);
+  assert.equal(header.fill.fgColor.argb, 'FFC0C0C0');
+  assert.equal(cell.value, '13800000001');
+  assert.equal(cell.font.bold, undefined);
+  assert.equal(cell.fill, undefined);
+  assert.equal(cell.border.left.style, 'thin');
+  assert.equal(cell.alignment.horizontal, 'center');
+  assert.equal(sheet.getColumn(2).width, 15);
 });
 
 test('leaveTableSvg numbers the rows and escapes text', () => {

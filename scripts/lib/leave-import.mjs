@@ -143,10 +143,39 @@ export function textWidth(text) {
   return w;
 }
 
-/** Excel column widths (`!cols`) wide enough for every header and value. */
+/** Excel column widths (in characters) wide enough for every header and value. */
 export function columnWidths(table) {
   const widths = table[0].map((_, c) => Math.max(...table.map((row) => textWidth(row[c] ?? ''))));
-  return widths.map((w) => ({ wch: Math.max(8, w + 2) }));
+  return widths.map((w) => Math.max(10, w + 4));
+}
+
+// Cell styles of the form's own export: 微软雅黑, thin black borders, centred and wrapped;
+// bold headers on a grey fill.
+const BORDER = { style: 'thin', color: { argb: 'FF000000' } };
+const CELL_STYLE = {
+  font: { name: '微软雅黑', size: 10 },
+  alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+  border: { top: BORDER, left: BORDER, bottom: BORDER, right: BORDER },
+};
+const HEADER_STYLE = {
+  ...CELL_STYLE,
+  font: { ...CELL_STYLE.font, bold: true },
+  fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC0C0C0' } },
+};
+const ROW_HEIGHT = 31.3;
+
+/** Fills an ExcelJS worksheet with the table (header row first), styled like the form's export. */
+export function fillSheet(sheet, table) {
+  columnWidths(table).forEach((width, i) => {
+    sheet.getColumn(i + 1).width = width;
+  });
+  table.forEach((values, r) => {
+    const row = sheet.addRow(values.map((v) => String(v ?? '')));
+    row.height = ROW_HEIGHT;
+    values.forEach((_, c) => {
+      Object.assign(row.getCell(c + 1), r === 0 ? HEADER_STYLE : CELL_STYLE);
+    });
+  });
 }
 
 /**

@@ -8,8 +8,10 @@
 // of the date in the sheet's title ("11月14日…"), or of --date.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { Resvg } from '@resvg/resvg-js';
+import ExcelJS from 'exceljs';
 import * as XLSX from 'xlsx';
 import { activeStudents, now, sessionAliases } from '../js/data.js';
 import { isDateStr, toDateStr, weekRange } from '../js/dates.js';
@@ -24,8 +26,8 @@ import {
   REASON,
   SESSIONS,
   buildOutputRows,
-  columnWidths,
   decodeText,
+  fillSheet,
   importedLeaves,
   leaveTableSvg,
   parseContacts,
@@ -88,20 +90,15 @@ if (contacts.size && noContact.length) {
 // Tidied spreadsheet and image.
 const outputRows = buildOutputRows(records, contacts);
 const table = [OUTPUT_COLUMNS, ...outputRows.map((r) => OUTPUT_COLUMNS.map((c) => r[c]))];
-const sheet = XLSX.utils.aoa_to_sheet(table);
-sheet['!cols'] = columnWidths(table);
-const out = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(out, sheet, '请假');
+const out = new ExcelJS.Workbook();
+fillSheet(out.addWorksheet('请假'), table);
 
 let stem = basename(file, extname(file));
 if (stem.lastIndexOf('-') > 0) stem = stem.slice(0, stem.lastIndexOf('-'));
 const outName = `${cls.name}${stem}`;
 const exportsDir = new URL('exports/', ROOT);
 mkdirSync(exportsDir, { recursive: true });
-writeFileSync(
-  new URL(`${outName}.xlsx`, exportsDir),
-  XLSX.write(out, { type: 'buffer', bookType: 'xlsx' }),
-);
+await out.xlsx.writeFile(fileURLToPath(new URL(`${outName}.xlsx`, exportsDir)));
 console.log(`Wrote exports/${outName}.xlsx (${outputRows.length} students)`);
 
 const onLeave = outputRows.filter((r) => r[SESSIONS]);
