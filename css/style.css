@@ -17,8 +17,10 @@
   --header-text: #ffffff;
   --podium-row: #f3c58c;
   --podium: #e9a14a;
-  --seat: #eef4fb;
+  --seat: #e3edf9;
+  --seat-edge: #b9c8dc;
   --seat-text: #1f2937;
+  --status-edge: rgb(0 0 0 / 0.14);
   --leave: #d6d9de;
   --leave-text: #5b6170;
   --absent: #f8b4b4;
@@ -51,8 +53,10 @@
     --header-text: #e6eefc;
     --podium-row: #5a4123;
     --podium: #8a5a1f;
-    --seat: #222a36;
+    --seat: #263142;
+    --seat-edge: #3a4556;
     --seat-text: #e6e8eb;
+    --status-edge: rgb(255 255 255 / 0.12);
     --leave: #2e3138;
     --leave-text: #8b919c;
     --absent: #6b1f1f;
@@ -503,8 +507,8 @@ textarea {
 }
 .seatgrid {
   display: grid;
-  grid-template-columns: 1.9em repeat(var(--half-cols), minmax(0, 1fr));
-  gap: 2px;
+  grid-template-columns: 1.6em repeat(var(--half-cols), minmax(0, 1fr));
+  gap: 4px;
   font-size: 12.5px;
 }
 .cell {
@@ -535,11 +539,11 @@ button.cell {
 .cell-corner,
 .cell-colLabel,
 .cell-rowLabel {
-  min-height: 28px;
-  background: var(--header);
-  color: var(--header-text);
-  font-size: 12px;
-  font-weight: 600;
+  min-height: 20px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
 }
 .cell-rowLabel {
   min-height: 46px;
@@ -561,6 +565,9 @@ button.cell {
 .cell-seat {
   background: var(--seat);
   color: var(--seat-text);
+  box-shadow:
+    inset 0 0 0 1px var(--seat-edge),
+    0 1px 1px rgb(0 0 0 / 0.06);
 }
 .cell-seat[data-key^='f:'] {
   background: var(--podium-row);
@@ -573,7 +580,12 @@ button.cell {
 }
 .cell.st-empty {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--seat-edge);
+}
+.cell.st-leave,
+.cell.st-absent,
+.cell.st-came {
+  box-shadow: inset 0 0 0 1px var(--status-edge);
 }
 .cell.st-leave {
   background: var(--leave);
@@ -592,7 +604,7 @@ button.cell {
   outline-offset: -1px;
 }
 .cell.target {
-  box-shadow: inset 0 0 0 1px var(--primary);
+  box-shadow: inset 0 0 0 2px var(--primary);
 }
 .cell.layout-add {
   color: var(--muted);
@@ -812,8 +824,8 @@ button.cell {
 @media (min-width: 720px) {
   .seatgrid {
     font-size: 15px;
-    grid-template-columns: 3em repeat(var(--half-cols), minmax(0, 1fr));
-    gap: 3px;
+    grid-template-columns: 2.4em repeat(var(--half-cols), minmax(0, 1fr));
+    gap: 5px;
   }
   .cell {
     min-height: 56px;
