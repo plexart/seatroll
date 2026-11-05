@@ -45,6 +45,7 @@ export function renderSeatGrid(chart, view, seat) {
   });
   rows.forEach((row, ri) => {
     row.forEach((cell, ci) => {
+      if (cell.kind === 'gap') return; // the half-column ends of the podium row stay blank
       const style = `grid-row: ${ri + 1}; grid-column: ${gridColumn(cell, ci, row.length)}`;
       if (['seat', 'void', 'disabled'].includes(cell.kind)) {
         const info = seat(cell) ?? {};

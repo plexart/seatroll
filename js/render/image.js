@@ -98,7 +98,10 @@ export function chartImage(chart, view, { title, subtitle, seat, legend = [] }) 
         fill = COLORS.podium;
         color = COLORS.headerText;
         weight = 'bold';
-      } else if (cell.kind === 'void' || cell.kind === 'gap') {
+      } else if (cell.kind === 'gap') {
+        x += w; // the half-column ends of the podium row stay blank
+        continue;
+      } else if (cell.kind === 'void') {
         fill = COLORS.podiumRow;
       } else if (cell.kind === 'disabled') {
         fill = '#d1d5db';

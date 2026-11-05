@@ -546,8 +546,7 @@ button.cell {
   color: var(--header-text);
   font-weight: 700;
 }
-.cell-void,
-.cell-gap {
+.cell-void {
   background: var(--podium-row);
   opacity: 0.45;
 }
