@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { assign, createChart, mainKey } from '../js/chart.js';
 import {
   activeChart,
+  checkedSessions,
   emptyData,
   leaveOverview,
   mergeInto,
@@ -117,6 +118,21 @@ test('validateChangeset', () => {
     }),
     'invalidRecord',
   );
+});
+
+test('checkedSessions lists checked-in sessions newest first', () => {
+  const data = sampleData();
+  data.attendance.push(
+    { date: '2026-11-07', slot: 'sat-pm', marks: {}, updatedAt: T1 },
+    { date: '2026-11-07', slot: 'gone', marks: {}, updatedAt: T1 },
+    { date: '2026-11-07', slot: 'sat-am', marks: {}, updatedAt: T1 },
+  );
+  data.leaves.push({ date: '2026-11-09', slot: 'fri-eve', students: [], updatedAt: T1 });
+  assert.deepEqual(checkedSessions(data), [
+    { date: '2026-11-07', slot: 'sat-pm' },
+    { date: '2026-11-07', slot: 'sat-am' },
+    { date: '2026-11-06', slot: 'fri-eve' },
+  ]);
 });
 
 test('rangeReport counts presence only for checked sessions', () => {

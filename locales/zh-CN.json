@@ -158,6 +158,7 @@
   "report.studentsImage": "学生统计图片",
   "report.sessionsImage": "课次图片",
   "report.none": "无",
+  "report.noCheckins": "还没有签到记录",
   "report.date": "日期",
   "report.slot": "时段",
   "report.checkedCol": "签到",

@@ -1,14 +1,20 @@
 // Reports: one session's sheet, per-student statistics over a date range, and a leave overview.
 
-import { leaveOverview, rangeReport, sessionSummary, studentMap } from '../data.js';
-import { addDays, toDateStr, toTimeStr } from '../dates.js';
+import {
+  checkedSessions,
+  findSlot,
+  leaveOverview,
+  rangeReport,
+  sessionSummary,
+  studentMap,
+} from '../data.js';
+import { addDays, toDateStr } from '../dates.js';
 import { copyText, h, saveFile, setChildren, toast } from '../dom.js';
 import { formatDate, sessionLabel, slotPart } from '../format.js';
 import { t } from '../i18n.js';
 import { tableImage } from '../render/image.js';
-import { resolveSlot } from '../sessions.js';
 import { onChange, state } from '../store.js';
-import { exportName, segmented, sessionImage, sessionPicker, sessionText } from './common.js';
+import { exportName, segmented, sessionImage, sessionText } from './common.js';
 
 let tab = 'session';
 let session = null;
@@ -17,10 +23,6 @@ let leaveRange = null;
 
 export function renderReport(container) {
   const today = toDateStr(new Date());
-  session ??= {
-    date: today,
-    slotId: resolveSlot(state.data.slots, today, toTimeStr(new Date())).id,
-  };
   range ??= { from: addDays(today, -27), to: today };
   leaveRange ??= { from: addDays(today, -7), to: addDays(today, 21) };
 
@@ -99,12 +101,28 @@ function nameSection(title, list, render, kind) {
 }
 
 function sessionTab(draw) {
-  const summary = sessionSummary(state.data, session.date, session.slotId);
+  const list = checkedSessions(state.data);
+  if (!list.length) return h('p', { class: 'empty' }, t('report.noCheckins'));
+  if (!list.some((s) => s.date === session?.date && s.slot === session?.slot)) session = list[0];
+  const summary = sessionSummary(state.data, session.date, session.slot);
   const names = studentMap(state.data);
-  const picker = sessionPicker(session.date, session.slotId, (s) => {
-    session = s;
-    draw();
-  });
+  const select = h(
+    'select',
+    {
+      onChange: () => {
+        session = list[Number(select.value)];
+        draw();
+      },
+    },
+    list.map((s, i) =>
+      h(
+        'option',
+        { value: String(i), selected: s.date === session.date && s.slot === session.slot },
+        sessionLabel(s.date, findSlot(state.data, s.slot)),
+      ),
+    ),
+  );
+  const picker = h('div', { class: 'session-picker' }, select);
   if (!summary.chart) return h('div', {}, picker, h('p', { class: 'empty' }, t('checkin.noChart')));
   return h(
     'div',

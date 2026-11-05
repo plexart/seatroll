@@ -291,6 +291,11 @@ export function sessionsInRange(data, from, to) {
   );
 }
 
+/** Sessions that have a check-in record, newest first. */
+export function checkedSessions(data) {
+  return sessionsInRange({ ...data, leaves: [] }, '0000-01-01', '9999-12-31').reverse();
+}
+
 /**
  * Per-student statistics over [from, to]. Presence and absence only count for sessions that
  * were checked in; leave counts for every session.
