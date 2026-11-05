@@ -142,8 +142,9 @@ Browsers only allow WebCrypto (and service workers) in a secure context: `https:
 
 `.nojekyll` disables Jekyll processing. The service worker serves the app shell cache-first
 (refreshing it in the background), and `data/` network-first, so merged data shows up on the
-next load while the app keeps working offline. Bump `js/version.js` with each release, and
-update the `ASSETS` list in `sw.js` when adding or removing app files (a test checks it).
+next load while the app keeps working offline. Bump `js/version.js` when a release changes
+app files; data-only changes (`data/`) need no bump. Update the `ASSETS` list in `sw.js` when
+adding or removing app files (a test checks it).
 
 ## Project layout
 
