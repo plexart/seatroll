@@ -13,7 +13,6 @@ import {
   resize,
   screenToColDelta,
   seatMap,
-  setPodium,
   shiftCols,
   shiftRows,
   swap,
@@ -300,7 +299,7 @@ export function renderSeatEditor(container, ctx) {
       const sid = getSeat(chart, selection.key);
       return t('seats.hintSeat', {
         name: names.get(sid)?.name ?? '',
-        seat: seatLabel(selection.key),
+        seat: seatLabel(selection.key, chart),
       });
     })();
 
@@ -348,9 +347,6 @@ export function renderSeatEditor(container, ctx) {
       { class: 'layout-form' },
       numberField(t('seats.rows'), chart.rows, 1, 15, (n) => update(resize(chart, n, chart.cols))),
       numberField(t('seats.cols'), chart.cols, 1, 15, (n) => update(resize(chart, chart.rows, n))),
-      numberField(t('seats.podium'), chart.podium + 1, 1, chart.cols, (n) =>
-        update(setPodium(chart, n - 1)),
-      ),
     );
 
     const save = () => {

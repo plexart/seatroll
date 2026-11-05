@@ -38,12 +38,8 @@ export function renderLeaves(container) {
       return new Map((leave?.students ?? []).map((x) => [x.id, x.note ?? '']));
     });
     // Seat of each student in the chart of the first session, to help find them.
-    const seats = new Map(
-      sessionSummary(state.data, sessions[0].date, sessions[0].slot.id).expected.map((s) => [
-        s.id,
-        s.seat,
-      ]),
-    );
+    const first = sessionSummary(state.data, sessions[0].date, sessions[0].slot.id);
+    const seats = new Map(first.expected.map((s) => [s.id, s.seat]));
     const students = activeStudents(state.data).filter((s) => !filter || s.name.includes(filter));
 
     const dateInput = h('input', {
@@ -105,7 +101,7 @@ export function renderLeaves(container) {
             },
             st.name,
             seats.has(st.id)
-              ? h('span', { class: 'muted small' }, seatLabel(seats.get(st.id)))
+              ? h('span', { class: 'muted small' }, seatLabel(seats.get(st.id), first.chart))
               : null,
           ),
         ),

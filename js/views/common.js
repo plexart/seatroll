@@ -67,8 +67,10 @@ export function badge(text, kind = '') {
   return h('span', { class: `badge ${kind}` }, text);
 }
 
-const nameList = (list, withSeat) =>
-  list.map((s) => (withSeat && s.seat ? `${s.name}（${seatLabel(s.seat)}）` : s.name)).join('、');
+const nameList = (list, chart) =>
+  list
+    .map((s) => (chart && s.seat ? `${s.name}（${seatLabel(s.seat, chart)}）` : s.name))
+    .join('、');
 
 /** Plain-text session report for pasting into a group chat. */
 export function sessionText(summary) {
@@ -83,7 +85,10 @@ export function sessionText(summary) {
   if (!summary.record) lines.push(t('text.notChecked'));
   if (summary.absent.length) {
     lines.push(
-      t('text.absent', { n: summary.absent.length, names: nameList(summary.absent, true) }),
+      t('text.absent', {
+        n: summary.absent.length,
+        names: nameList(summary.absent, summary.chart),
+      }),
     );
   } else if (summary.record) {
     lines.push(t('text.allPresent'));
@@ -100,7 +105,7 @@ export function sessionText(summary) {
     lines.push(
       t('text.presentOnLeave', {
         n: summary.presentOnLeave.length,
-        names: nameList(summary.presentOnLeave, false),
+        names: nameList(summary.presentOnLeave, null),
       }),
     );
   }

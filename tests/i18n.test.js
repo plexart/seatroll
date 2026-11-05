@@ -62,3 +62,18 @@ test('dynamic i18n key families are complete', () => {
   ];
   for (const key of expected) assert.ok(Object.hasOwn(locale, key), key);
 });
+
+test('podium-row seats are named relative to the podium', async () => {
+  const { createChart, frontKey, mainKey } = await import('../js/chart.js');
+  const { seatLabel } = await import('../js/render/seatgrid.js');
+  setMessages(locale, 'zh-CN');
+  const odd = createChart({ id: 'o', effectiveFrom: '', rows: 1, cols: 7 }); // podium = col 3
+  assert.equal(seatLabel(frontKey(2), odd), '讲台左1');
+  assert.equal(seatLabel(frontKey(0), odd), '讲台左3');
+  assert.equal(seatLabel(frontKey(4), odd), '讲台右1');
+  const even = createChart({ id: 'e', effectiveFrom: '', rows: 1, cols: 8 }); // podium = col 3
+  assert.equal(seatLabel(frontKey(2), even), '讲台左1');
+  assert.equal(seatLabel(frontKey(6), even), '讲台右3');
+  assert.equal(seatLabel(mainKey(0, 4), even), '1行5列');
+  assert.equal(seatLabel(null, even), '未排座');
+});

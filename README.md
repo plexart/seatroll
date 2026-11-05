@@ -23,8 +23,8 @@ Demo: open the site, pick **示例班级** and enter the password `demo`.
   editor can shift everyone forward/back one row or left/right one column (wrapping around;
   seats in the podium row are never moved), and place students by tapping: tap a student, then
   a seat. Seat to seat swaps; a student from the unseated tray takes the seat and the previous
-  occupant goes back to the tray. The layout (rows, columns, podium column, cells without a
-  desk, seats beside the podium) is editable. Charts can be saved as images.
+  occupant goes back to the tray. The layout (rows, columns, cells without a desk, seats beside
+  the podium) is editable; the podium is always centred. Charts can be saved as images.
 - **Leave** — regular weeks have three sessions (Friday 18:30–22:00, Saturday 08:00–12:00,
   Saturday 14:00–16:45). The "specific date" mode uses the same three time slots on any date,
   for make-up lessons during holidays.
@@ -157,7 +157,7 @@ tests/                  node:test unit tests
   students: [{ id, name, archived?, updatedAt }],
   seatCharts: [{
     id, effectiveFrom: 'YYYY-MM-DDTHH:mm', rows, cols,
-    podium,                         // podium column (0 = students' leftmost)
+    podium,                         // podium column; always the centre (see js/chart.js)
     front: { '<col>': studentId },  // seats in the podium row
     seats: [[studentId | null]],    // row 0 = front row
     disabled: ['<row>:<col>'],      // cells without a desk

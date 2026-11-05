@@ -1,6 +1,7 @@
 // Browser state: the open class, its decrypted data, and local changes not yet merged into
 // the data file (the "overlay": own edits plus imported changesets, kept in localStorage).
 
+import { centerPodium } from './chart.js';
 import { decryptJson } from './crypto.js';
 import {
   COLLECTIONS,
@@ -142,6 +143,7 @@ export function forgetPassword(classId) {
 
 function recompute() {
   state.data = mergeInto(state.base, state.overlay).result;
+  state.data.seatCharts = state.data.seatCharts.map(centerPodium);
   write(
     overlayKey(state.cls.id),
     countRecords(state.overlay) ? JSON.stringify(state.overlay) : null,

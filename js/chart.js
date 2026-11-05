@@ -4,17 +4,33 @@
 // column 0 is the students' leftmost column ("column 1" in the UI). Seats are addressed by
 // string keys: 'm:<row>:<col>' for the main grid and 'f:<col>' for seats in the podium row.
 //
+// The podium is always centred. With an odd number of columns it sits in the middle column;
+// with an even number it sits between the two middle columns, so the podium row is drawn half
+// a column over. Its slots are then numbered like the main column to their left, i.e. the
+// podium is column cols/2 - 1 and the last column has no podium-row slot.
+//
 // chart = {
 //   id, effectiveFrom: 'YYYY-MM-DDTHH:mm', rows, cols,
-//   podium: <col>,                      // podium position in the front row
+//   podium: <col>,                      // always podiumCol(cols); kept for older app versions
 //   front: { '<col>': studentId|null }, // seats beside the podium (keys = seat exists)
 //   seats: [[studentId|null]],          // rows x cols
 //   disabled: ['<row>:<col>'],          // main-grid cells without a desk
 //   updatedAt, deleted?
 // }
 
-export function createChart({ id, effectiveFrom, rows = 6, cols = 8, podium }) {
-  const p = podium ?? Math.floor((cols - 1) / 2);
+/** The podium's column: the middle one, or the left of the two middle ones. */
+export function podiumCol(cols) {
+  return Math.floor((cols - 1) / 2);
+}
+
+/** Whether column `c` has a podium-row slot (podium excluded). */
+export function isFrontSlot(cols, c) {
+  const p = podiumCol(cols);
+  return c >= 0 && c <= 2 * p && c !== p;
+}
+
+export function createChart({ id, effectiveFrom, rows = 6, cols = 8 }) {
+  const p = podiumCol(cols);
   const front = {};
   for (const c of [p - 1, p + 1]) if (c >= 0 && c < cols) front[c] = null;
   return {
@@ -181,12 +197,28 @@ export function resize(chart, rows, cols) {
     const [r, c] = k.split(':').map(Number);
     return r < rows && c < cols;
   });
-  next.podium = Math.min(chart.podium, cols - 1);
+  // Podium-row seats keep their place relative to the podium, which stays centred.
+  next.podium = podiumCol(cols);
+  const delta = next.podium - chart.podium;
   next.front = {};
   for (const [c, id] of Object.entries(chart.front)) {
-    if (Number(c) < cols && Number(c) !== next.podium) next.front[c] = id;
+    const nc = Number(c) + delta;
+    if (isFrontSlot(cols, nc)) next.front[nc] = id;
   }
   return next;
+}
+
+/**
+ * Charts saved while the podium column was still a setting may have it off centre, or a seat
+ * in the last column of an even-width podium row. This moves the podium to the centre and its
+ * row's seats along with it; seats that no longer fit are dropped and their students become
+ * unseated. Charts that already fit are returned as is.
+ */
+export function centerPodium(chart) {
+  if (chart.deleted) return chart;
+  const fits = Object.keys(chart.front).every((c) => isFrontSlot(chart.cols, Number(c)));
+  if (chart.podium === podiumCol(chart.cols) && fits) return chart;
+  return resize(chart, chart.rows, chart.cols);
 }
 
 /** Toggles whether a main-grid cell has a desk; a student there becomes unseated. */
@@ -203,17 +235,10 @@ export function toggleDisabled(chart, r, c) {
 
 /** Toggles a seat in the podium row (not on the podium itself). */
 export function toggleFrontSeat(chart, c) {
-  if (c === chart.podium) return chart;
+  if (!isFrontSlot(chart.cols, c)) return chart;
   const next = cloneChart(chart);
   if (c in next.front) delete next.front[c];
   else next.front[c] = null;
-  return next;
-}
-
-export function setPodium(chart, c) {
-  const next = cloneChart(chart);
-  next.podium = c;
-  delete next.front[c];
   return next;
 }
 
@@ -221,7 +246,9 @@ export function setPodium(chart, c) {
  * Lays the chart out for display as a matrix of cells, in screen order (top-left first).
  * Cell kinds: 'corner', 'colLabel' (text = column number), 'rowLabel' (text = row number,
  * '' for the podium row), 'seat' (key), 'podium', 'void' (empty podium-row cell, key),
- * 'disabled' (main cell without a desk, key).
+ * 'disabled' (main cell without a desk, key), 'gap' (half-column filler at both ends of the
+ * podium row when the column count is even). Podium-row cells carry `span: [start, end]`, their
+ * horizontal extent in half-column units (screen column i covers [2i, 2i + 2]).
  * Seat view: podium on top, columns 1..n left to right. Podium view: rotated 180 degrees.
  */
 export function layout(chart, view) {
@@ -229,11 +256,17 @@ export function layout(chart, view) {
   const frontRow = [{ kind: 'rowLabel', text: '' }];
   const mainRows = [];
   if (view === 'podium') colOrder.reverse();
-  for (const c of colOrder) {
-    if (c === chart.podium) frontRow.push({ kind: 'podium' });
-    else if (c in chart.front) frontRow.push({ kind: 'seat', key: frontKey(c) });
-    else frontRow.push({ kind: 'void', key: frontKey(c) });
-  }
+  const p = podiumCol(chart.cols);
+  const slots = colOrder.filter((c) => c <= 2 * p);
+  const offset = chart.cols - 1 - 2 * p; // 1 when even: half a column of gap on each side
+  if (offset) frontRow.push({ kind: 'gap', span: [0, 1] });
+  slots.forEach((c, i) => {
+    const span = [i * 2 + offset, i * 2 + offset + 2];
+    if (c === p) frontRow.push({ kind: 'podium', span });
+    else if (c in chart.front) frontRow.push({ kind: 'seat', key: frontKey(c), span });
+    else frontRow.push({ kind: 'void', key: frontKey(c), span });
+  });
+  if (offset) frontRow.push({ kind: 'gap', span: [chart.cols * 2 - 1, chart.cols * 2] });
   for (let r = 0; r < chart.rows; r++) {
     mainRows.push([
       { kind: 'rowLabel', text: String(r + 1) },

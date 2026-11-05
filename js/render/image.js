@@ -78,7 +78,11 @@ export function chartImage(chart, view, { title, subtitle, seat, legend = [] }) 
     let x = pad;
     const isFront = row.some((c) => c.kind === 'podium');
     for (const cell of row) {
-      const w = cell.kind === 'rowLabel' || cell.kind === 'corner' ? labelW : cellW;
+      let w = cell.kind === 'rowLabel' || cell.kind === 'corner' ? labelW : cellW;
+      if (cell.span) {
+        x = pad + labelW + (cell.span[0] * cellW) / 2;
+        w = ((cell.span[1] - cell.span[0]) * cellW) / 2;
+      }
       const cy = top + ri * cellH;
       let fill = COLORS.seat;
       let color = COLORS.text;
@@ -94,7 +98,7 @@ export function chartImage(chart, view, { title, subtitle, seat, legend = [] }) 
         fill = COLORS.podium;
         color = COLORS.headerText;
         weight = 'bold';
-      } else if (cell.kind === 'void') {
+      } else if (cell.kind === 'void' || cell.kind === 'gap') {
         fill = COLORS.podiumRow;
       } else if (cell.kind === 'disabled') {
         fill = '#d1d5db';

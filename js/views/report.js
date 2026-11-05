@@ -137,7 +137,7 @@ function sessionTab(draw) {
     nameSection(
       t('stat.absent'),
       summary.absent,
-      (s) => `${s.name}（${seatLabel(s.seat)}）`,
+      (s) => `${s.name}（${seatLabel(s.seat, summary.chart)}）`,
       'absent',
     ),
     nameSection(

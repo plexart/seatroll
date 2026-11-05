@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   assign,
+  centerPodium,
   createChart,
   frontKey,
   getSeat,
@@ -13,6 +14,7 @@ import {
   shiftRows,
   swap,
   toggleDisabled,
+  toggleFrontSeat,
   unseat,
 } from '../js/chart.js';
 
@@ -23,7 +25,6 @@ function sample() {
     effectiveFrom: '2026-01-01T00:00',
     rows: 3,
     cols: 3,
-    podium: 1,
   });
   for (let r = 0; r < 3; r++)
     for (let c = 0; c < 3; c++) chart = assign(chart, mainKey(r, c), `r${r}c${c}`).chart;
@@ -112,4 +113,55 @@ test('layout: seat view has the podium on top and columns 1..n; podium view is r
     ',f:2,podium,f:0',
     'corner,3,2,1',
   ]);
+});
+
+const frontSpans = (chart, view) =>
+  layout(chart, view)
+    .find((row) => row.some((c) => c.kind === 'podium'))
+    .slice(1)
+    .map((c) => `${c.key ?? c.kind}@${c.span}`);
+
+test('layout: odd column count puts the podium in the middle column', () => {
+  assert.deepEqual(frontSpans(sample(), 'seat'), ['f:0@0,2', 'podium@2,4', 'f:2@4,6']);
+});
+
+test('layout: even column count puts the podium between the middle columns', () => {
+  const even = createChart({ id: 'e', effectiveFrom: '', rows: 2, cols: 4 });
+  assert.deepEqual(frontSpans(even, 'seat'), [
+    'gap@0,1',
+    'f:0@1,3',
+    'podium@3,5',
+    'f:2@5,7',
+    'gap@7,8',
+  ]);
+  assert.deepEqual(frontSpans(even, 'podium'), [
+    'gap@0,1',
+    'f:2@1,3',
+    'podium@3,5',
+    'f:0@5,7',
+    'gap@7,8',
+  ]);
+  // The last column has no podium-row slot, and the podium itself is not a seat.
+  assert.equal(toggleFrontSeat(even, 3), even);
+  assert.equal(toggleFrontSeat(even, 1), even);
+});
+
+test('resize keeps the podium centred and moves its row along', () => {
+  const chart = resize(sample(), 3, 6); // podium 1 -> 2
+  assert.equal(chart.podium, 2);
+  assert.deepEqual(chart.front, { 1: 'F0', 3: 'F2' });
+  const narrow = resize(chart, 3, 2); // 2 columns: the podium takes the only slot
+  assert.equal(narrow.podium, 0);
+  assert.deepEqual(narrow.front, {});
+});
+
+test('centerPodium fixes charts saved with an off-centre podium', () => {
+  const old = { ...createChart({ id: 'o', effectiveFrom: '', rows: 1, cols: 5 }) };
+  old.podium = 0;
+  old.front = { 1: 'A', 2: 'B', 4: 'C' };
+  const fixed = centerPodium(old);
+  assert.equal(fixed.podium, 2);
+  assert.deepEqual(fixed.front, { 3: 'A', 4: 'B' });
+  const ok = createChart({ id: 'k', effectiveFrom: '', rows: 1, cols: 5 });
+  assert.equal(centerPodium(ok), ok);
 });
