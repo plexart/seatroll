@@ -434,18 +434,21 @@ export function renderSeatEditor(container, ctx) {
         { class: 'actions sticky' },
         h(
           'button',
-          { type: 'button', class: 'btn primary', onClick: save, disabled: !isDraft() },
-          t('common.save'),
-        ),
-        h(
-          'button',
           { type: 'button', class: 'btn', onClick: undo, disabled: !history.length },
           t('seats.undo'),
         ),
-        h('button', { type: 'button', class: 'btn', onClick: image }, t('common.image')),
-        isDraft() && saved
+        !saved || isDraft()
           ? h('button', { type: 'button', class: 'btn', onClick: discard }, t('seats.discard'))
           : null,
+        h(
+          'button',
+          { type: 'button', class: 'btn primary', onClick: save, disabled: !isDraft() },
+          t('common.save'),
+        ),
+      ),
+      h(
+        'div',
+        { class: 'actions' },
         saved
           ? h(
               'button',
@@ -453,9 +456,7 @@ export function renderSeatEditor(container, ctx) {
               t('common.delete'),
             )
           : null,
-        !saved
-          ? h('button', { type: 'button', class: 'btn', onClick: discard }, t('seats.discard'))
-          : null,
+        h('button', { type: 'button', class: 'btn push-end', onClick: image }, t('common.image')),
       ),
     );
   };
