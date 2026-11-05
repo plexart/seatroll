@@ -330,20 +330,6 @@ textarea {
   padding-inline: 10px;
   white-space: nowrap;
 }
-.actions.sticky {
-  position: sticky;
-  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px);
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  flex-wrap: nowrap;
-}
-.actions.sticky .btn {
-  flex: 1 1 0;
-  padding-inline: 8px;
-  white-space: nowrap;
-}
 
 .segmented {
   display: inline-flex;

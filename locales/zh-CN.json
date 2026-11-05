@@ -126,7 +126,7 @@
   "seats.unseat": "移到待排座",
   "seats.manageStudents": "管理学生名单",
   "seats.undo": "撤销",
-  "seats.discard": "放弃修改",
+  "seats.discard": "放弃",
   "seats.confirmDiscard": "放弃这次的修改？",
   "seats.confirmDelete": "删除这个座位表？",
   "seats.sameTime": "已有相同生效时间的座位表，请修改生效时间。",
