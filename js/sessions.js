@@ -51,6 +51,11 @@ export function weekSessions(slots, date) {
     );
 }
 
+/** Date of the first regular session in the week containing `date` (Friday by default). */
+export function weekStartDate(slots, date) {
+  return weekSessions(slots, date)[0]?.date ?? date;
+}
+
 /** All slots held on one date (used for holiday make-up days). */
 export function daySessions(slots, date) {
   return sortSlots(slots).map((slot) => ({ date, slot }));

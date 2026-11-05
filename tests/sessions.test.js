@@ -1,6 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_SLOTS, defaultLeaveWeek, resolveSlot, weekSessions } from '../js/sessions.js';
+import {
+  DEFAULT_SLOTS,
+  defaultLeaveWeek,
+  resolveSlot,
+  weekSessions,
+  weekStartDate,
+} from '../js/sessions.js';
 
 const slot = (date, time) => resolveSlot(DEFAULT_SLOTS, date, time).id;
 
@@ -33,4 +39,11 @@ test('defaultLeaveWeek moves to next week after the last session', () => {
   assert.equal(defaultLeaveWeek(DEFAULT_SLOTS, '2026-11-07', '12:00'), '2026-11-07');
   assert.equal(defaultLeaveWeek(DEFAULT_SLOTS, '2026-11-07', '17:00'), '2026-11-14');
   assert.equal(defaultLeaveWeek(DEFAULT_SLOTS, '2026-11-08', '09:00'), '2026-11-15');
+});
+
+test('weekStartDate snaps any day of the week to its Friday', () => {
+  for (const d of ['2026-11-02', '2026-11-05', '2026-11-06', '2026-11-07', '2026-11-08']) {
+    assert.equal(weekStartDate(DEFAULT_SLOTS, d), '2026-11-06');
+  }
+  assert.equal(weekStartDate([], '2026-11-05'), '2026-11-05');
 });

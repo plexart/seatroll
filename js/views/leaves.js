@@ -8,7 +8,7 @@ import { addDays, toDateStr, toTimeStr } from '../dates.js';
 import { h, setChildren, toast } from '../dom.js';
 import { formatShortDate, slotName, slotPart } from '../format.js';
 import { t } from '../i18n.js';
-import { daySessions, defaultLeaveWeek, weekSessions } from '../sessions.js';
+import { daySessions, defaultLeaveWeek, weekSessions, weekStartDate } from '../sessions.js';
 import { commit, isUnmerged, onChange, state } from '../store.js';
 import { exportCollections, segmented } from './common.js';
 
@@ -33,6 +33,8 @@ export function renderLeaves(container) {
   };
 
   const draw = () => {
+    // Show the week by its first session's date so the ±7-day steps stay on that weekday.
+    if (mode === 'week') date = weekStartDate(state.data.slots, date);
     const sessions =
       mode === 'week' ? weekSessions(state.data.slots, date) : daySessions(state.data.slots, date);
     const leaveSets = sessions.map((s) => {
