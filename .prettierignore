@@ -1,0 +1,5 @@
+node_modules/
+private/
+exports/
+data/*.enc.json
+package-lock.json
