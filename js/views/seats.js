@@ -6,8 +6,10 @@
 
 import {
   assign,
+  canCrossRotate,
   cloneChart,
   createChart,
+  crossRotate,
   getSeat,
   MAX_COLS,
   MAX_ROWS,
@@ -383,6 +385,18 @@ export function renderSeatEditor(container, ctx) {
           onClick: () => update(shiftCols(chart, screenToColDelta(view, 1)), { slide: true }),
         },
         t('seats.shiftRight'),
+      ),
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'btn small cross-rotate',
+          title: t('seats.crossRotateHint'),
+          disabled: !canCrossRotate(chart),
+          // Half the class moves back and half forward: each name flies on its own.
+          onClick: () => update(crossRotate(chart)),
+        },
+        t('seats.crossRotate'),
       ),
     );
 

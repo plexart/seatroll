@@ -111,6 +111,8 @@
   "seats.shiftBackward": "↓ 后移一排",
   "seats.shiftLeft": "← 左移一列",
   "seats.shiftRight": "右移一列 →",
+  "seats.crossRotate": "⇅ 前后交叉轮换（每两列一组）",
+  "seats.crossRotateHint": "仅限 6 行 × 8 列且没有空位：前三排与后三排互换，同时移到下一组两列",
   "seats.rows": "行数",
   "seats.cols": "列数",
   "seats.colsFrom": "第1列在",

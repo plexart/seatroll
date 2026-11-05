@@ -2,9 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   assign,
+  canCrossRotate,
   centerPodium,
   colNumber,
   createChart,
+  crossRotate,
   frontKey,
   getSeat,
   layout,
@@ -187,4 +189,51 @@ test('centerPodium fixes charts saved with an off-centre podium', () => {
   assert.deepEqual(fixed.front, { 3: 'A', 4: 'B' });
   const ok = createChart({ id: 'k', effectiveFrom: '', rows: 1, cols: 5 });
   assert.equal(centerPodium(ok), ok);
+});
+
+/** 6 rows x 8 cols, every seat filled with ids like 'r0c1', plus front seats. */
+function sample68() {
+  let chart = createChart({ id: 'c', effectiveFrom: '2026-01-01T00:00', rows: 6, cols: 8 });
+  for (let r = 0; r < 6; r++)
+    for (let c = 0; c < 8; c++) chart = assign(chart, mainKey(r, c), `r${r}c${c}`).chart;
+  chart = assign(chart, frontKey(2), 'F2').chart;
+  return chart;
+}
+
+test('crossRotate swaps front and back halves and moves each column pair one pair over', () => {
+  const next = crossRotate(sample68());
+  // Rows 1-3, columns 1-2 -> rows 4-6, columns 3-4.
+  assert.equal(next.seats[3][2], 'r0c0');
+  assert.equal(next.seats[5][3], 'r2c1');
+  // Rows 4-6, columns 1-2 -> rows 1-3, columns 3-4.
+  assert.equal(next.seats[0][2], 'r3c0');
+  // Rows 1-3, columns 7-8 -> rows 4-6, columns 1-2.
+  assert.equal(next.seats[4][1], 'r1c7');
+  // Rows 4-6, columns 7-8 -> rows 1-3, columns 1-2.
+  assert.equal(next.seats[2][0], 'r5c6');
+  assert.equal(next.front[2], 'F2');
+});
+
+test('crossRotate four times brings everyone back', () => {
+  let chart = sample68();
+  for (let i = 0; i < 4; i++) chart = crossRotate(chart);
+  assert.deepEqual(chart, sample68());
+});
+
+test('crossRotate follows column numbers when column 1 is on the right', () => {
+  const chart = setColsFrom(sample68(), 'right');
+  const next = crossRotate(chart);
+  // Column 1-2 is index 7-6; it moves to columns 3-4, index 5-4.
+  assert.equal(next.seats[3][5], 'r0c7');
+  assert.equal(next.seats[0][7], 'r3c1');
+});
+
+test('crossRotate only applies to a full 6 x 8 grid', () => {
+  assert.equal(canCrossRotate(sample68()), true);
+  const holed = toggleDisabled(sample68(), 0, 0);
+  assert.equal(canCrossRotate(holed), false);
+  assert.equal(crossRotate(holed), holed);
+  assert.equal(canCrossRotate(sample()), false);
+  const small = sample();
+  assert.equal(crossRotate(small), small);
 });

@@ -199,6 +199,33 @@ export function shiftCols(chart, delta) {
 }
 
 /**
+ * Whether the chart fits the cross rotation: a full 6 x 8 grid (every cell has a desk).
+ */
+export function canCrossRotate(chart) {
+  return chart.rows === 6 && chart.cols === 8 && chart.disabled.length === 0;
+}
+
+/**
+ * Cross rotation for a 6 x 8 grid. The columns form pairs (1-2, 3-4, 5-6, 7-8) and the rows a
+ * front half (rows 1-3) and a back half (rows 4-6). Every 3 x 2 block moves to the other half
+ * and to the next column pair by column number (7-8 wraps to 1-2), keeping each student's
+ * place within the block. Four rotations bring everyone back. Podium row untouched; charts
+ * that do not fit are returned as is.
+ */
+export function crossRotate(chart) {
+  if (!canCrossRotate(chart)) return chart;
+  const { rows, cols } = chart;
+  const dc = chart.colsFrom === 'right' ? -2 : 2; // towards higher column numbers
+  const next = cloneChart(chart);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      next.seats[(r + rows / 2) % rows][(((c + dc) % cols) + cols) % cols] = chart.seats[r][c];
+    }
+  }
+  return next;
+}
+
+/**
  * Converts an on-screen horizontal direction (-1 = left, +1 = right) into a column delta.
  * In the podium view the columns are mirrored.
  */
