@@ -5,7 +5,6 @@ import { getSeat } from '../chart.js';
 import { findAttendance, now, sessionSummary, studentMap } from '../data.js';
 import { toDateStr, toTimeStr } from '../dates.js';
 import { copyAndShareText, h, saveFile, setChildren, toast } from '../dom.js';
-import { formatDate, sessionLabel } from '../format.js';
 import { t } from '../i18n.js';
 import { renderSeatGrid } from '../render/seatgrid.js';
 import { currentSession, listSessions } from '../sessions.js';
@@ -36,57 +35,21 @@ function shownSession(list) {
 }
 
 export function renderCheckin(container) {
-  const clock = h('div', { class: 'clock' });
-  const tick = () => {
-    const d = new Date();
-    clock.textContent = `${formatDate(toDateStr(d))} ${d.toLocaleTimeString('zh-CN', { hour12: false })}`;
-  };
-  tick();
-  const timer = setInterval(tick, 1000);
-
   const draw = () => {
     const list = listSessions(state.data);
     const shown = shownSession(list);
     if (!shown) {
-      setChildren(
-        container,
-        h('section', { class: 'card session-card' }, clock),
-        h('p', { class: 'empty' }, t('checkin.noSessions')),
-      );
+      setChildren(container, h('p', { class: 'empty' }, t('checkin.noSessions')));
       return;
     }
     const { date, slotId } = shown;
     const summary = sessionSummary(state.data, date, slotId);
     const names = studentMap(state.data);
 
-    const header = h(
-      'section',
-      { class: 'card session-card' },
-      h(
-        'div',
-        { class: 'row space' },
-        pinned ? h('strong', { class: 'pinned' }, t('checkin.pinned')) : clock,
-        pinned
-          ? h(
-              'button',
-              {
-                type: 'button',
-                class: 'btn small',
-                onClick: () => {
-                  pinned = null;
-                  draw();
-                },
-              },
-              t('checkin.backToNow'),
-            )
-          : null,
-      ),
-      h('div', { class: 'session-title' }, sessionLabel(date, summary.slot)),
-      sessionPicker(list, date, slotId, (s) => {
-        pinned = s;
-        draw();
-      }),
-    );
+    const header = sessionPicker(list, date, slotId, (s) => {
+      pinned = s;
+      draw();
+    });
 
     if (!summary.chart) {
       setChildren(container, header, h('p', { class: 'empty' }, t('checkin.noChart')));
@@ -204,11 +167,7 @@ export function renderCheckin(container) {
   };
 
   draw();
-  const off = onChange(draw);
-  return () => {
-    clearInterval(timer);
-    off();
-  };
+  return onChange(draw);
 }
 
 function stat(label, value, kind = '') {

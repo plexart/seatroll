@@ -432,13 +432,6 @@ textarea {
 }
 
 /* ---------- Check-in ---------- */
-.session-card .clock {
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-}
-.session-card .pinned {
-  color: var(--warn);
-}
 .session-title {
   margin: 4px 0 8px;
   font-size: 17px;
