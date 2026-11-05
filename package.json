@@ -17,10 +17,12 @@
     "decrypt": "node scripts/decrypt.mjs",
     "passwd": "node scripts/passwd.mjs",
     "demo": "node scripts/demo.mjs",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "import-leaves": "node scripts/import-leaves.mjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
-    "prettier": "^3.9.10"
+    "prettier": "^3.9.10",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   }
 }
