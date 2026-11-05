@@ -47,8 +47,13 @@ export function toast(message) {
 
 /** Saves a file: shares it (mobile, e.g. to WeChat) when possible, otherwise downloads it. */
 export async function saveFile(blob, filename) {
-  const file = new File([blob], filename, { type: blob.type });
-  if (navigator.canShare?.({ files: [file] })) {
+  const files = [new File([blob], filename, { type: blob.type })];
+  // Mobile Chrome refuses to share .json files, so offer the same content as plain text too.
+  if (blob.type === 'application/json') {
+    files.push(new File([blob], filename.replace(/\.json$/, '.txt'), { type: 'text/plain' }));
+  }
+  const file = files.find((f) => navigator.canShare?.({ files: [f] }));
+  if (file) {
     try {
       await navigator.share({ files: [file] });
       return;

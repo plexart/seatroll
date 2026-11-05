@@ -88,7 +88,7 @@ function dataCard() {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const fileInput = h('input', {
     type: 'file',
-    accept: '.json,application/json',
+    accept: '.json,.txt,application/json,text/plain',
     multiple: true,
     hidden: true,
     onChange: async (e) => {

@@ -58,12 +58,13 @@ The site has no server, so changes travel as files:
 1. Edits made in the app (students, seat charts, leave, check-ins) are kept in the browser
    and marked "未合并" (unmerged).
 2. Export them (Settings → 全部导出, or the export button on each page). On phones the file
-   goes to the share sheet, so it can be sent straight to a chat.
+   goes to the share sheet, so it can be sent straight to a chat (as `.txt` where the browser
+   will not share `.json`; import and merge accept either).
 3. Other volunteers can import the file (Settings → 导入文件) to see the changes right away.
 4. The maintainer merges the files into the encrypted data and publishes them:
 
    ```sh
-   npm run merge -- ~/Downloads/seatroll-demo-*.json
+   npm run merge -- ~/Downloads/seatroll-demo-*.{json,txt}
    git add data && git commit -m "Update class data" && git push
    ```
 
