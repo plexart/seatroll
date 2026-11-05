@@ -505,11 +505,17 @@ textarea {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+/* The row-label columns (plus one gap) reach into the view's 16px side padding, so the seats
+   line up with the cards above and the labels take no width from them. */
+.grid-scroll {
+  --label-w: 12px;
+  --seat-gap: 4px;
+  margin-inline: calc(-1 * (var(--label-w) + var(--seat-gap)));
+}
 .seatgrid {
   display: grid;
-  --label-w: 1.6em;
   grid-template-columns: var(--label-w) repeat(var(--half-cols), minmax(0, 1fr)) var(--label-w);
-  gap: 4px;
+  gap: var(--seat-gap);
   font-size: 12.5px;
 }
 .cell {
@@ -540,6 +546,10 @@ button.cell {
 }
 .cell-rowLabel {
   min-height: 46px;
+}
+.cell-corner,
+.cell-rowLabel {
+  padding: 0;
 }
 .cell-podium {
   background: var(--podium);
@@ -814,10 +824,12 @@ button.cell {
 }
 
 @media (min-width: 720px) {
+  .grid-scroll {
+    --label-w: 11px;
+    --seat-gap: 5px;
+  }
   .seatgrid {
     font-size: 15px;
-    --label-w: 2.4em;
-    gap: 5px;
   }
   .cell {
     min-height: 56px;
