@@ -713,7 +713,7 @@ button.cell {
 }
 .leave-table th,
 .leave-table td {
-  padding: 3px;
+  padding: 2px 3px;
   border-bottom: 1px solid var(--border);
   text-align: center;
   font-weight: normal;
@@ -733,7 +733,7 @@ button.cell {
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  padding: 4px;
+  padding: 2px 4px;
   border: 0;
   background: none;
   text-align: left;
@@ -741,7 +741,8 @@ button.cell {
 }
 .leave-cell {
   width: 100%;
-  min-height: 38px;
+  min-height: 28px;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
