@@ -144,8 +144,8 @@ function sessionTab(draw) {
     h(
       'div',
       { class: 'actions' },
-      copyButton(() => sessionText(summary)),
       imageButton(() => sessionImage(summary, names), 'session'),
+      copyButton(() => sessionText(summary)),
     ),
   );
 }
@@ -221,7 +221,6 @@ function rangeTab(draw) {
     h(
       'div',
       { class: 'actions' },
-      copyButton(text),
       imageButton(
         () =>
           tableImage({
@@ -238,6 +237,7 @@ function rangeTab(draw) {
         'sessions',
         t('report.sessionsImage'),
       ),
+      copyButton(text),
     ),
   );
 }

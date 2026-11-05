@@ -34,11 +34,6 @@ function classCard(ctx) {
       { class: 'actions' },
       h(
         'button',
-        { type: 'button', class: 'btn', onClick: () => ctx.navigate('/login') },
-        t('settings.switchClass'),
-      ),
-      h(
-        'button',
         {
           type: 'button',
           class: 'btn danger',
@@ -50,6 +45,11 @@ function classCard(ctx) {
           },
         },
         t('settings.logout'),
+      ),
+      h(
+        'button',
+        { type: 'button', class: 'btn', onClick: () => ctx.navigate('/login') },
+        t('settings.switchClass'),
       ),
     ),
     h(
@@ -134,11 +134,11 @@ function dataCard() {
         'button',
         {
           type: 'button',
-          class: 'btn primary',
+          class: 'btn danger',
           disabled: !total,
-          onClick: () => exportCollections(COLLECTIONS, 'all'),
+          onClick: () => confirm(t('settings.confirmClear')) && clearOverlay(),
         },
-        t('settings.exportAll'),
+        t('settings.clear'),
       ),
       h(
         'button',
@@ -149,11 +149,11 @@ function dataCard() {
         'button',
         {
           type: 'button',
-          class: 'btn danger',
+          class: 'btn primary',
           disabled: !total,
-          onClick: () => confirm(t('settings.confirmClear')) && clearOverlay(),
+          onClick: () => exportCollections(COLLECTIONS, 'all'),
         },
-        t('settings.clear'),
+        t('settings.exportAll'),
       ),
     ),
     fileInput,

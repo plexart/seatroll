@@ -315,8 +315,12 @@ textarea {
 .actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end; /* right-hand thumb: primary button last, at the far right */
   gap: 8px;
   margin: 12px 0;
+}
+.actions .btn.danger {
+  margin-right: auto; /* danger buttons go first, far from the thumb */
 }
 .actions.sticky {
   position: sticky;
@@ -326,9 +330,6 @@ textarea {
   border-radius: var(--radius);
   background: var(--surface);
   flex-wrap: nowrap;
-}
-.actions .push-end {
-  margin-left: auto;
 }
 .actions.sticky .btn {
   flex: 1 1 0;

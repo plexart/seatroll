@@ -117,6 +117,11 @@ export function renderSeatList(container, ctx) {
       { class: 'actions' },
       h(
         'button',
+        { type: 'button', class: 'btn', onClick: () => startNew(null) },
+        t('seats.newBlank'),
+      ),
+      h(
+        'button',
         {
           type: 'button',
           class: 'btn primary',
@@ -124,11 +129,6 @@ export function renderSeatList(container, ctx) {
           disabled: !charts.length,
         },
         t('seats.newFromCurrent'),
-      ),
-      h(
-        'button',
-        { type: 'button', class: 'btn', onClick: () => startNew(null) },
-        t('seats.newBlank'),
       ),
     ),
     draft && !charts.some((c) => c.id === draft.id)
