@@ -1,5 +1,10 @@
 [
   {
+    "id": "g3-23",
+    "name": "高三23班",
+    "file": "data/g3-23.enc.json"
+  },
+  {
     "id": "demo",
     "name": "示例班级",
     "file": "data/demo.enc.json"
