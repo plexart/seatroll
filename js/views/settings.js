@@ -170,16 +170,20 @@ function installCard(redraw) {
     h('p', { class: 'muted small' }, t(isIOS() ? 'install.iosHint' : 'install.hint')),
     canPromptInstall()
       ? h(
-          'button',
-          {
-            type: 'button',
-            class: 'btn primary',
-            onClick: async () => {
-              if (await promptInstall()) toast(t('install.done'));
-              redraw();
+          'div',
+          { class: 'actions' },
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'btn primary',
+              onClick: async () => {
+                if (await promptInstall()) toast(t('install.done'));
+                redraw();
+              },
             },
-          },
-          t('install.button'),
+            t('install.button'),
+          ),
         )
       : null,
   );
