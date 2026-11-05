@@ -29,7 +29,7 @@ import { toDateStr, toTimeStr } from '../dates.js';
 import { h, saveFile, setChildren, toast } from '../dom.js';
 import { t } from '../i18n.js';
 import { chartImage } from '../render/image.js';
-import { renderSeatGrid, seatLabel } from '../render/seatgrid.js';
+import { renderSeatGrid } from '../render/seatgrid.js';
 import { commit, isUnmerged, prefs, state } from '../store.js';
 import {
   badge,
@@ -301,10 +301,7 @@ export function renderSeatEditor(container, ctx) {
       if (selection.type === 'tray')
         return t('seats.hintTray', { name: names.get(selection.id)?.name ?? '' });
       const sid = getSeat(chart, selection.key);
-      return t('seats.hintSeat', {
-        name: names.get(sid)?.name ?? '',
-        seat: seatLabel(selection.key, chart),
-      });
+      return t('seats.hintSeat', { name: names.get(sid)?.name ?? '' });
     })();
 
     const trayEl = h(
