@@ -7,6 +7,7 @@ import { t } from '../i18n.js';
 import { formatTimestamp, sessionLabel } from '../format.js';
 import { chartImage } from '../render/image.js';
 import { seatLabel } from '../render/seatgrid.js';
+import { sortSlots } from '../sessions.js';
 import { exportChangeset, prefs, state } from '../store.js';
 
 /** Segmented control. options: [{ value, label }]. */
@@ -56,7 +57,7 @@ export function sessionPicker(date, slotId, onChange) {
   const slotSelect = h(
     'select',
     { onChange: () => onChange({ date: dateInput.value, slotId: slotSelect.value }) },
-    state.data.slots.map((s) =>
+    sortSlots(state.data.slots).map((s) =>
       h('option', { value: s.id, selected: s.id === slotId }, `${s.start}–${s.end}`),
     ),
   );
