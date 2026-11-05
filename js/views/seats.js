@@ -243,7 +243,7 @@ export function renderSeatEditor(container, ctx) {
   const show = (next, slide) => {
     const ids = movedStudents(chart, next);
     const before = snapshot(ids);
-    changed = ids;
+    changed = slide ? null : ids; // a whole-chart shift moves everyone; the slide says enough
     chart = next;
     selection = null;
     storeDraft(chart);
