@@ -107,11 +107,11 @@ test('layout: seat view has the podium on top and columns 1..n; podium view is r
     '3,m:2:0,m:2:1,m:2:2',
   ]);
   assert.deepEqual(describe(layout(chart, 'podium')), [
+    'corner,3,2,1',
     '3,m:2:2,m:2:1,m:2:0',
     '2,m:1:2,m:1:1,m:1:0',
     '1,m:0:2,m:0:1,m:0:0',
     ',f:2,podium,f:0',
-    'corner,3,2,1',
   ]);
 });
 

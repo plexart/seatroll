@@ -249,7 +249,8 @@ export function toggleFrontSeat(chart, c) {
  * 'disabled' (main cell without a desk, key), 'gap' (half-column filler at both ends of the
  * podium row when the column count is even). Podium-row cells carry `span: [start, end]`, their
  * horizontal extent in half-column units (screen column i covers [2i, 2i + 2]).
- * Seat view: podium on top, columns 1..n left to right. Podium view: rotated 180 degrees.
+ * Seat view: podium on top, columns 1..n left to right. Podium view: rotated 180 degrees,
+ * except that the column labels stay on top.
  */
 export function layout(chart, view) {
   const colOrder = [...Array(chart.cols).keys()];
@@ -281,6 +282,6 @@ export function layout(chart, view) {
     { kind: 'corner' },
     ...colOrder.map((c) => ({ kind: 'colLabel', text: String(c + 1) })),
   ];
-  if (view === 'podium') return [...mainRows.reverse(), frontRow, labels];
+  if (view === 'podium') return [labels, ...mainRows.reverse(), frontRow];
   return [labels, frontRow, ...mainRows];
 }
