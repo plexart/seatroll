@@ -894,6 +894,7 @@ button.cell {
   cursor: pointer;
 }
 .leave-cell {
+  display: block;
   width: 100%;
   min-height: 28px;
   padding: 0;
