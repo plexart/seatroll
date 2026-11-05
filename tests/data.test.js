@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { assign, createChart, mainKey } from '../js/chart.js';
 import {
   activeChart,
@@ -11,9 +12,12 @@ import {
   pastedLeaves,
   pruneOverlay,
   rangeReport,
+  sessionAliases,
   sessionSummary,
   validateChangeset,
 } from '../js/data.js';
+import { setMessages } from '../js/i18n.js';
+import { DEFAULT_SLOTS } from '../js/sessions.js';
 
 const T1 = '2026-11-01T00:00:00.000Z';
 const T2 = '2026-11-02T00:00:00.000Z';
@@ -225,4 +229,18 @@ test('pastedLeaves adds to existing leaves and keeps notes unless replaced', () 
     },
     { date: '2026-11-07', slot: 'am', students: [{ id: 's2', note: '理疗' }], updatedAt: T2 },
   ]);
+});
+
+test('sessionAliases maps session words to keys, bare slot names only when unique', () => {
+  setMessages(JSON.parse(readFileSync(new URL('../locales/zh-CN.json', import.meta.url))), 'zh-CN');
+  const slot = (id) => DEFAULT_SLOTS.find((s) => s.id === id);
+  const aliases = sessionAliases([
+    { date: '2026-11-06', slot: slot('eve') },
+    { date: '2026-11-07', slot: slot('am') },
+    { date: '2026-11-08', slot: slot('am') },
+  ]);
+  assert.equal(aliases.get('周五晚上'), '2026-11-06|eve');
+  assert.equal(aliases.get('周六上午'), '2026-11-07|am');
+  assert.equal(aliases.get('晚上'), '2026-11-06|eve');
+  assert.equal(aliases.has('上午'), false);
 });

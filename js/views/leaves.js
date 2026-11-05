@@ -3,12 +3,19 @@
 // (name, reason, sessions); the grid below is for checking and small fixes. Tapping a cell
 // toggles leave for that student and session; changes save at once.
 
-import { activeStudents, findLeave, now, parseLeavePaste, pastedLeaves } from '../data.js';
+import {
+  activeStudents,
+  findLeave,
+  now,
+  parseLeavePaste,
+  pastedLeaves,
+  sessionAliases,
+} from '../data.js';
 import { addDays, toDateStr, toTimeStr, weekRange } from '../dates.js';
 import { h, setChildren, toast } from '../dom.js';
-import { formatShortDate, sessionName, slotPart } from '../format.js';
+import { formatShortDate, sessionName } from '../format.js';
 import { t } from '../i18n.js';
-import { listSessions, nextSessionDate, sessionKey } from '../sessions.js';
+import { listSessions, nextSessionDate } from '../sessions.js';
 import { commit, isUnmerged, onChange, state } from '../store.js';
 import { exportCollections, stepButton } from './common.js';
 
@@ -153,17 +160,11 @@ export function renderLeaves(container) {
     });
     const register = () => {
       if (!pasteText.trim()) return;
-      // "周五晚上" names a session of the week; a bare "晚上" works when only one session has it.
-      const aliases = new Map();
-      const parts = new Map();
-      for (const s of sessions) {
-        const key = sessionKey(s.date, s.slot.id);
-        aliases.set(sessionName(s.date, s.slot), key);
-        const part = slotPart(s.slot);
-        parts.set(part, parts.has(part) ? null : key);
-      }
-      for (const [part, key] of parts) if (key && !aliases.has(part)) aliases.set(part, key);
-      const parsed = parseLeavePaste(pasteText, activeStudents(state.data), aliases);
+      const parsed = parseLeavePaste(
+        pasteText,
+        activeStudents(state.data),
+        sessionAliases(sessions),
+      );
       const entries = parsed.entries;
       pasteProblems = [
         parsed.unknownNames.length &&

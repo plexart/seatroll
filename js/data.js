@@ -15,6 +15,7 @@
 
 import { seatKeys, getSeat } from './chart.js';
 import { isDateStr, isTimestamp } from './dates.js';
+import { sessionName, slotPart } from './format.js';
 import {
   DEFAULT_SCHEDULE,
   DEFAULT_SLOTS,
@@ -157,6 +158,23 @@ export function activeStudents(data) {
   return data.students
     .filter((s) => !s.archived)
     .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+}
+
+/**
+ * Session words as volunteers write them in leave sheets, mapped to session keys: "周五晚上" for
+ * each session, and a bare slot name such as "晚上" when only one session has it.
+ */
+export function sessionAliases(sessions) {
+  const aliases = new Map();
+  const parts = new Map();
+  for (const s of sessions) {
+    const key = sessionKey(s.date, s.slot.id);
+    aliases.set(sessionName(s.date, s.slot), key);
+    const part = slotPart(s.slot);
+    parts.set(part, parts.has(part) ? null : key);
+  }
+  for (const [part, key] of parts) if (key && !aliases.has(part)) aliases.set(part, key);
+  return aliases;
 }
 
 /**
