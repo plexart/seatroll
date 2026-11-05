@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
+import { MAX_COLS } from '../js/chart.js';
 import { interpolate, setMessages, t } from '../js/i18n.js';
 
 const root = new URL('../', import.meta.url);
@@ -85,4 +86,8 @@ test('seat names follow the column numbering direction', async () => {
   const chart = setColsFrom(createChart({ id: 'r', effectiveFrom: '', rows: 1, cols: 8 }), 'right');
   assert.equal(seatLabel(mainKey(0, 0), chart), '1行8列');
   assert.equal(seatLabel(mainKey(0, 7), chart), '1行1列');
+});
+
+test('numerals cover every column a layout can have', () => {
+  assert.ok(locale.numerals.length >= MAX_COLS);
 });

@@ -2,6 +2,7 @@
 
 import { colNumber, layout, parseKey, podiumCol } from '../chart.js';
 import { h } from '../dom.js';
+import { numeral } from '../format.js';
 import { t } from '../i18n.js';
 
 /**
@@ -22,7 +23,7 @@ export function labelText(cell) {
     case 'corner':
       return '';
     case 'colLabel':
-      return t('grid.col', { n: cell.text });
+      return t('grid.col', { n: numeral(Number(cell.text)) });
     case 'rowLabel':
       return cell.text ? t('grid.row', { n: cell.text }) : '';
     case 'podium':

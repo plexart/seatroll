@@ -42,3 +42,8 @@ export function slotLabel(slot) {
 export function sessionLabel(date, slot) {
   return `${formatDate(date)} ${slotPart(slot)} ${slot.start}–${slot.end}`;
 }
+
+/** Column numeral from the locale (1 -> "一"), falling back to the digits. */
+export function numeral(n) {
+  return raw('numerals')?.[n - 1] ?? String(n);
+}
