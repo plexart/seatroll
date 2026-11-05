@@ -15,7 +15,14 @@ import { t } from '../i18n.js';
 import { tableImage } from '../render/image.js';
 import { listSessions, nextSessionDate } from '../sessions.js';
 import { onChange, state } from '../store.js';
-import { exportName, segmented, sessionImage, sessionSelect, sessionText } from './common.js';
+import {
+  exportName,
+  segmented,
+  sessionImage,
+  sessionSelect,
+  sessionText,
+  stepButton,
+} from './common.js';
 
 let tab = 'session';
 let session = null;
@@ -85,21 +92,8 @@ function rangePicker(value, onChange, shift) {
   };
   from.addEventListener('change', update);
   to.addEventListener('change', update);
-  const arrow = (delta, label) =>
-    h(
-      'button',
-      { type: 'button', class: 'btn small', onClick: () => onChange(shift(delta)) },
-      label,
-    );
-  return h(
-    'div',
-    { class: 'session-picker' },
-    arrow(-1, '‹'),
-    from,
-    h('span', {}, '–'),
-    to,
-    arrow(1, '›'),
-  );
+  const arrow = (delta) => stepButton(delta, () => onChange(shift(delta)));
+  return h('div', { class: 'session-picker' }, arrow(-1), from, h('span', {}, '–'), to, arrow(1));
 }
 
 function nameSection(title, list, render, kind) {

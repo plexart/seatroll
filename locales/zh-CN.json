@@ -1,6 +1,8 @@
 {
   "app.title": "座签",
   "nav.back": "返回",
+  "nav.prev": "上一个",
+  "nav.next": "下一个",
   "tab.checkin": "签到",
   "tab.seats": "座位",
   "tab.leaves": "请假",

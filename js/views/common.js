@@ -124,6 +124,17 @@ export function sessionSelect(items, index, onPick) {
   return trigger;
 }
 
+/** ‹ (delta < 0) or › button stepping a picker; the chevron is drawn in CSS. */
+export function stepButton(delta, onClick, disabled = false) {
+  return h('button', {
+    type: 'button',
+    class: `btn step ${delta < 0 ? 'prev' : 'next'}`,
+    'aria-label': t(delta < 0 ? 'nav.prev' : 'nav.next'),
+    disabled,
+    onClick,
+  });
+}
+
 /**
  * Session chooser for the listed sessions (from listSessions) between ‹ › buttons for the
  * previous and next session. onChange({ date, slotId }).
@@ -131,24 +142,8 @@ export function sessionSelect(items, index, onPick) {
 export function sessionPicker(list, date, slotId, onChange) {
   const index = list.findIndex((s) => s.date === date && s.slot.id === slotId);
   const go = (i) => onChange({ date: list[i].date, slotId: list[i].slot.id });
-  const arrow = (delta, label) =>
-    h(
-      'button',
-      {
-        type: 'button',
-        class: 'btn small',
-        disabled: !list[index + delta],
-        onClick: () => go(index + delta),
-      },
-      label,
-    );
-  return h(
-    'div',
-    { class: 'session-picker' },
-    arrow(-1, '‹'),
-    sessionSelect(list, index, go),
-    arrow(1, '›'),
-  );
+  const arrow = (delta) => stepButton(delta, () => go(index + delta), !list[index + delta]);
+  return h('div', { class: 'session-picker' }, arrow(-1), sessionSelect(list, index, go), arrow(1));
 }
 
 export function badge(text, kind = '') {

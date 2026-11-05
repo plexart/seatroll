@@ -10,7 +10,7 @@ import { formatShortDate, sessionName, slotPart } from '../format.js';
 import { t } from '../i18n.js';
 import { listSessions, nextSessionDate, sessionKey } from '../sessions.js';
 import { commit, isUnmerged, onChange, state } from '../store.js';
-import { exportCollections } from './common.js';
+import { exportCollections, stepButton } from './common.js';
 
 // Kept across page switches.
 let date = null;
@@ -226,9 +226,9 @@ export function renderLeaves(container) {
       h(
         'div',
         { class: 'row date-nav' },
-        h('button', { type: 'button', class: 'btn small', onClick: step(-7) }, '‹'),
+        stepButton(-1, step(-7)),
         dateInput,
-        h('button', { type: 'button', class: 'btn small', onClick: step(7) }, '›'),
+        stepButton(1, step(7)),
       ),
       h(
         'p',
