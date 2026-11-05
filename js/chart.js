@@ -19,6 +19,10 @@
 //   updatedAt, deleted?
 // }
 
+/** Layout size limits (the locale's `numerals` must cover MAX_COLS). */
+export const MAX_ROWS = 15;
+export const MAX_COLS = 15;
+
 /** The podium's column: the middle one, or the left of the two middle ones. */
 export function podiumCol(cols) {
   return Math.floor((cols - 1) / 2);

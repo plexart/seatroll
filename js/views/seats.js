@@ -9,6 +9,8 @@ import {
   cloneChart,
   createChart,
   getSeat,
+  MAX_COLS,
+  MAX_ROWS,
   parseKey,
   resize,
   screenSide,
@@ -347,8 +349,12 @@ export function renderSeatEditor(container, ctx) {
     const layoutForm = h(
       'div',
       { class: 'layout-form' },
-      numberField(t('seats.rows'), chart.rows, 1, 15, (n) => update(resize(chart, n, chart.cols))),
-      numberField(t('seats.cols'), chart.cols, 1, 15, (n) => update(resize(chart, chart.rows, n))),
+      numberField(t('seats.rows'), chart.rows, 1, MAX_ROWS, (n) =>
+        update(resize(chart, n, chart.cols)),
+      ),
+      numberField(t('seats.cols'), chart.cols, 1, MAX_COLS, (n) =>
+        update(resize(chart, chart.rows, n)),
+      ),
       h(
         'div',
         { class: 'field inline' },
