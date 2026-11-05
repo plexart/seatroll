@@ -223,7 +223,11 @@ export function renderSeatEditor(container, ctx) {
           [{ transform: `translate(${-mx}px, ${-my}px)`, opacity: 0 }, { opacity: 1 }],
           timing,
         );
+      } else if (slide) {
+        // Everyone moves together: a plain glide keeps the gaps between seats steady.
+        el.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], timing);
       } else {
+        // A single student lifts above the others while it flies over them.
         el.animate(
           [
             {
