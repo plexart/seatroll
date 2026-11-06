@@ -18,7 +18,8 @@
     "passwd": "node scripts/passwd.mjs",
     "demo": "node scripts/demo.mjs",
     "icons": "node scripts/icons.mjs",
-    "import-leaves": "node scripts/import-leaves.mjs"
+    "import-leaves": "node scripts/import-leaves.mjs",
+    "import-enrichment": "node scripts/import-enrichment.mjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

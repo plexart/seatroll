@@ -23,6 +23,7 @@ const ASSETS = [
   'js/data.js',
   'js/dates.js',
   'js/dom.js',
+  'js/enrichment.js',
   'js/format.js',
   'js/i18n.js',
   'js/install.js',

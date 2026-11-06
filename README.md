@@ -69,6 +69,19 @@ sessions first) and a numbered PNG of the students on leave. Gender and phone co
 `private/<id>.students.csv` (columns with 姓名, 性别 and 手机/电话 in the header; `--csv` for
 another file), matched by name.
 
+The weekly in-school enrichment (校内培优) roster is imported from the lesson ledger app's JSON
+export, replacing the previous roster (`--dry-run` only prints the matches):
+
+```sh
+npm run import-enrichment -- g3-23 ~/Downloads/lesson-ledger-2026-11-06.json
+git add data && git commit -m "Import enrichment roster" && git push
+```
+
+Students are matched by name; ledger students not in the class are listed and skipped. The
+roster is kept low-key on purpose: only the check-in screen uses it, dimming the seats of
+students who are at a class right now (until its end time). Counts, copied text, images and
+reports ignore it.
+
 The site has no server, so changes travel as files:
 
 1. Edits made in the app (students, seat charts, leave, check-ins) are kept in the browser
@@ -99,6 +112,7 @@ Requires Node 20+. Run `npm install` once.
 | `npm run remove-sessions -- [id] date[..date] [slot ...]` | Remove sessions (records are kept, hidden)                                      |
 | `npm run merge -- <file.json> [...]`                      | Merge exported changesets into the encrypted data files                         |
 | `npm run import-leaves -- <id> <file.xls>`                | Import leave from a sign-up sheet; write a tidied sheet and image to `exports/` |
+| `npm run import-enrichment -- <id> <ledger.json>`         | Import the 校内培优 roster from a lesson-ledger export                          |
 | `npm run decrypt -- <id>`                                 | Write the decrypted data to `private/<id>.json` (gitignored)                    |
 | `npm run passwd -- <id>`                                  | Re-encrypt a class with a new password                                          |
 | `npm run demo`                                            | Regenerate the demo class from made-up names                                    |
@@ -195,6 +209,7 @@ tests/                  node:test unit tests
   slots: [{ id: 'am', start: '08:00', end: '12:00' }, ...],   // am, pm, eve: times of day
   schedule: [{ weekday: 5, slot: 'eve' }, ...],                // regular weekly sessions
   sessions: [{ date, slot }],                                  // every real session (scripts)
+  enrichment: [{ subject, weekday, start, end, students: [id] }], // 校内培优 roster (scripts)
   students: [{ id, name, archived?, updatedAt }],
   seatCharts: [{
     id, effectiveFrom: 'YYYY-MM-DDTHH:mm', rows, cols,
