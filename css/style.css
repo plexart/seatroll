@@ -730,6 +730,10 @@ button.cell {
   background: var(--surface);
   border: 1px solid var(--seat-edge);
 }
+/* Away at an enrichment class right now: deliberately subtle, no legend or count. */
+.cell.st-away {
+  opacity: 0.55;
+}
 .cell.st-leave,
 .cell.st-absent,
 .cell.st-came {

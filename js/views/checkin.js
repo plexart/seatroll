@@ -1,10 +1,12 @@
 // Check-in: the expected seat chart for the current (or chosen) session. Tapping a seat marks
-// an expected student absent, or a student on leave as present after all.
+// an expected student absent, or a student on leave as present after all. In today's session,
+// seats of students away at an enrichment class right now are dimmed with their return time.
 
 import { getSeat } from '../chart.js';
 import { findAttendance, now, sessionSummary, studentMap } from '../data.js';
-import { toDateStr, toTimeStr } from '../dates.js';
+import { minutes, toDateStr, toTimeStr } from '../dates.js';
 import { copyAndShareText, h, saveFile, setChildren, toast } from '../dom.js';
+import { activeEnrichment, nextBoundary } from '../enrichment.js';
 import { t } from '../i18n.js';
 import { renderSeatGrid } from '../render/seatgrid.js';
 import { currentSession, listSessions } from '../sessions.js';
@@ -35,7 +37,9 @@ function shownSession(list) {
 }
 
 export function renderCheckin(container) {
+  let timer = null;
   const draw = () => {
+    clearTimeout(timer);
     const list = listSessions(state.data);
     const shown = shownSession(list);
     if (!shown) {
@@ -45,6 +49,7 @@ export function renderCheckin(container) {
     const { date, slotId } = shown;
     const summary = sessionSummary(state.data, date, slotId);
     const names = studentMap(state.data);
+    const away = awayNow(date, (delay) => (timer = setTimeout(draw, delay)));
 
     const header = sessionPicker(list, date, slotId, (s) => {
       pinned = s;
@@ -86,10 +91,11 @@ export function renderCheckin(container) {
       if (cell.kind !== 'seat') return {};
       const id = getSeat(summary.chart, cell.key);
       const status = seatStatus(summary, id);
+      const until = status === 'expected' ? away.get(id)?.end : null;
       return {
         text: id ? names.get(id)?.name : '',
-        sub: status === 'expected' || status === 'empty' ? '' : t(`status.${status}`),
-        className: `st-${status}`,
+        sub: until || (status === 'expected' || status === 'empty' ? '' : t(`status.${status}`)),
+        className: until ? `st-${status} st-away` : `st-${status}`,
         onClick: id ? () => toggle(id) : null,
       };
     });
@@ -167,7 +173,29 @@ export function renderCheckin(container) {
   };
 
   draw();
-  return onChange(draw);
+  const off = onChange(draw);
+  return () => {
+    clearTimeout(timer);
+    off?.();
+  };
+}
+
+/**
+ * Students away at an enrichment class right now, when the shown session is today's; empty
+ * otherwise. Calls `schedule(ms)` with the delay to the next class start or end, if any.
+ */
+function awayNow(date, schedule) {
+  const d = new Date();
+  const today = toDateStr(d);
+  if (date !== today) return new Map();
+  const time = toTimeStr(d);
+  const next = nextBoundary(state.data, today, time);
+  if (next) {
+    const ms =
+      (minutes(next) - minutes(time)) * 60000 - d.getSeconds() * 1000 - d.getMilliseconds();
+    schedule(Math.max(ms, 1000));
+  }
+  return activeEnrichment(state.data, today, time);
 }
 
 function stat(label, value, kind = '') {
