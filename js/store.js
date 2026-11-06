@@ -99,9 +99,8 @@ export function cryptoAvailable() {
   return Boolean(globalThis.crypto?.subtle);
 }
 
-/** Loads and decrypts a class. On success the class and password are remembered. */
-export async function openClass(cls, password) {
-  if (!cryptoAvailable()) throw new LoadError('insecure');
+/** Fetches and decrypts a class data file. */
+async function loadBase(cls, password) {
   let envelope;
   try {
     const res = await fetch(cls.file, { cache: 'no-cache' });
@@ -110,25 +109,84 @@ export async function openClass(cls, password) {
   } catch {
     throw new LoadError('network');
   }
+  try {
+    return await decryptJson(envelope, password);
+  } catch (err) {
+    throw new LoadError(err.code === 'wrongPassword' ? 'wrongPassword' : 'corrupt');
+  }
+}
+
+function readOverlay(classId) {
+  try {
+    return JSON.parse(read(overlayKey(classId)) ?? 'null');
+  } catch {
+    return null;
+  }
+}
+
+/** Loads and decrypts a class. On success the class and password are remembered. */
+export async function openClass(cls, password) {
+  if (!cryptoAvailable()) throw new LoadError('insecure');
   let base;
   try {
-    base = await decryptJson(envelope, password);
+    base = await loadBase(cls, password);
   } catch (err) {
     if (err.code === 'wrongPassword') write(passwordKey(cls.id), null);
-    throw new LoadError(err.code === 'wrongPassword' ? 'wrongPassword' : 'corrupt');
+    throw err;
   }
   write(KEY_CURRENT, cls.id);
   write(passwordKey(cls.id), password);
-  let overlay;
-  try {
-    overlay = JSON.parse(read(overlayKey(cls.id)) ?? 'null');
-  } catch {
-    overlay = null;
-  }
   state.cls = cls;
   state.base = base;
-  state.overlay = pruneOverlay(base, overlay ?? emptyChangeset(cls.id));
+  state.overlay = pruneOverlay(base, readOverlay(cls.id) ?? emptyChangeset(cls.id));
+  lastRefresh = Date.now();
   recompute();
+}
+
+const REFRESH_INTERVAL = 30_000;
+let lastRefresh = 0;
+let refreshing = null;
+
+/**
+ * Fetches the open class's data file again, e.g. when the app returns to the foreground, so a
+ * newly merged file shows up without a restart. Local unmerged edits are kept. Failures (offline,
+ * changed password) leave the current data alone. Resolves to true when the data changed.
+ */
+export function refreshClass() {
+  if (refreshing) return refreshing;
+  const cls = state.cls;
+  const password = cls && savedPassword(cls.id);
+  if (!password || !cryptoAvailable() || Date.now() - lastRefresh < REFRESH_INTERVAL) {
+    return Promise.resolve(false);
+  }
+  lastRefresh = Date.now();
+  refreshing = loadBase(cls, password)
+    .then((base) => {
+      if (state.cls !== cls || JSON.stringify(base) === JSON.stringify(state.base)) return false;
+      state.base = base;
+      state.overlay = pruneOverlay(base, state.overlay);
+      recompute();
+      return true;
+    })
+    .catch((err) => {
+      console.warn('Refresh failed', err);
+      return false;
+    })
+    .finally(() => {
+      refreshing = null;
+    });
+  return refreshing;
+}
+
+/** Picks up overlay edits made in another tab on the same class. */
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (!state.cls || e.key !== overlayKey(state.cls.id)) return;
+    const overlay = readOverlay(state.cls.id) ?? emptyChangeset(state.cls.id);
+    if (JSON.stringify(overlay) === JSON.stringify(state.overlay)) return;
+    state.overlay = pruneOverlay(state.base, overlay);
+    recompute();
+  });
 }
 
 /** Forgets the open class (the saved password stays, so switching back is instant). */

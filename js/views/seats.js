@@ -32,7 +32,7 @@ import { h, saveFile, setChildren, toast } from '../dom.js';
 import { t } from '../i18n.js';
 import { chartImage } from '../render/image.js';
 import { renderSeatGrid } from '../render/seatgrid.js';
-import { commit, isUnmerged, prefs, state } from '../store.js';
+import { commit, isUnmerged, onChange, prefs, state } from '../store.js';
 import {
   badge,
   chartTitle,
@@ -72,6 +72,11 @@ function storeDraft(chart) {
 // ------------------------------------------------------------------ list
 
 export function renderSeatList(container, ctx) {
+  drawSeatList(container, ctx);
+  return onChange(() => drawSeatList(container, ctx));
+}
+
+function drawSeatList(container, ctx) {
   const at = nowStamp();
   const current = activeChart(state.data, at);
   const charts = liveCharts(state.data).reverse();

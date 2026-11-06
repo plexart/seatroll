@@ -1,6 +1,13 @@
 import { applyI18n, loadLocale, t } from './i18n.js';
 import { setChildren, h } from './dom.js';
-import { fetchClasses, openClass, savedClassId, savedPassword, state } from './store.js';
+import {
+  fetchClasses,
+  openClass,
+  refreshClass,
+  savedClassId,
+  savedPassword,
+  state,
+} from './store.js';
 import { isWeChat } from './install.js';
 import { renderLogin } from './views/login.js';
 import { renderCheckin } from './views/checkin.js';
@@ -131,6 +138,15 @@ async function boot() {
     }
   }
   render();
+
+  // A phone resumes the app instead of restarting it, so fetch the data file again whenever the
+  // app comes back to the foreground; views redraw through onChange when it changed.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshClass();
+  });
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) refreshClass();
+  });
 }
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
