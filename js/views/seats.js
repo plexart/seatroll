@@ -277,7 +277,8 @@ export function renderSeatEditor(container, ctx) {
     changed = slide ? null : ids; // a whole-chart shift moves everyone; the slide says enough
     chart = next;
     selection = null;
-    storeDraft(chart);
+    // Edits that land back on the saved chart leave nothing to keep.
+    storeDraft(isDraft() ? chart : null);
     draw();
     playMoves(before, slide);
   };
