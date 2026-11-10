@@ -45,7 +45,11 @@ export function toast(message) {
   }, 2200);
 }
 
-/** Saves a file: shares it (mobile, e.g. to WeChat) when possible, otherwise downloads it. */
+/**
+ * Saves a file: shares it (mobile, e.g. to WeChat) when possible, otherwise downloads it.
+ * Call it in the same tick as the tap, with a ready blob (no await before it), or share() loses
+ * the user activation.
+ */
 export async function saveFile(blob, filename) {
   // Mobile Chrome refuses to share .json files, yet canShare() still says yes and only share()
   // fails (using up the tap, so no retry), so JSON is always shared as plain text.

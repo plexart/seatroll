@@ -538,8 +538,8 @@ export function renderSeatEditor(container, ctx) {
       ctx.navigate('/seats');
     };
 
-    const image = async () => {
-      const blob = await chartImage(chart, view, {
+    const image = () => {
+      const blob = chartImage(chart, view, {
         title: `${state.cls.name} ${t('page.seats')}`,
         subtitle: `${chartTitle(chart)} · ${t(`view.${view}`)}`,
         seat: (cell) => {

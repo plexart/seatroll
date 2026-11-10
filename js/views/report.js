@@ -77,7 +77,7 @@ const imageButton = (getBlob, kind, label = t('common.image')) =>
     {
       type: 'button',
       class: 'btn',
-      onClick: async () => saveFile(await getBlob(), exportName(kind, 'png')),
+      onClick: () => saveFile(getBlob(), exportName(kind, 'png')),
     },
     label,
   );

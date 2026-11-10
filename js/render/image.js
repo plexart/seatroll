@@ -1,5 +1,7 @@
 // Draws seat charts and simple tables onto a canvas and returns PNG blobs, for sharing to
 // group chats or printing. Always uses a light palette, independent of the page theme.
+// Rendering is synchronous on purpose: the blob must be ready in the same tick as the tap, so
+// navigator.share() still has the user activation (iOS Safari can drop it after an async toBlob).
 
 import { layout } from '../chart.js';
 import { labelText } from './seatgrid.js';
@@ -17,8 +19,10 @@ const COLORS = {
   seat: '#eef4fb',
 };
 
-function toBlob(canvas) {
-  return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+function pngBlob(canvas) {
+  const base64 = canvas.toDataURL('image/png').split(',')[1];
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  return new Blob([bytes], { type: 'image/png' });
 }
 
 function setup(width, height) {
@@ -146,7 +150,7 @@ export function chartImage(chart, view, { title, subtitle, seat, legend = [] }) 
       x += 22 + ctx.measureText(item.text).width + 20;
     }
   }
-  return toBlob(canvas);
+  return pngBlob(canvas);
 }
 
 /** Renders a titled table (header row + rows of strings) as an image. */
@@ -188,5 +192,5 @@ export function tableImage({ title, subtitle, header, rows }) {
       x += widths[ci];
     });
   });
-  return toBlob(canvas);
+  return pngBlob(canvas);
 }

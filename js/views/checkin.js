@@ -130,8 +130,7 @@ export function renderCheckin(container) {
         {
           type: 'button',
           class: 'btn',
-          onClick: async () =>
-            saveFile(await sessionImage(summary, names), exportName('checkin', 'png')),
+          onClick: () => saveFile(sessionImage(summary, names), exportName('checkin', 'png')),
         },
         t('common.image'),
       ),
