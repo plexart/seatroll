@@ -207,6 +207,23 @@ export function importedLeaves(data, sessions, entries, updatedAt) {
   return changes;
 }
 
+/**
+ * Entries whose leave doesn't run to the end of the week: on leave at a session but not at a
+ * later one, which is usually a mistake in the sheet. `sessions` comes from listSessions (in
+ * order). Returns [{ studentId, missing }], `missing` being the later sessions not on leave.
+ */
+export function leaveGaps(sessions, entries) {
+  const gaps = [];
+  for (const e of entries) {
+    const onLeave = (s) => e.sessionKeys.includes(sessionKey(s.date, s.slot.id));
+    const first = sessions.findIndex(onLeave);
+    if (first < 0) continue;
+    const missing = sessions.slice(first + 1).filter((s) => !onLeave(s));
+    if (missing.length) gaps.push({ studentId: e.studentId, missing });
+  }
+  return gaps;
+}
+
 const FONT = 'Noto Sans CJK SC, PingFang SC, Microsoft YaHei, sans-serif';
 const escapeXml = (s) =>
   String(s).replace(

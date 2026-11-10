@@ -8,6 +8,7 @@ import {
   decodeText,
   fillSheet,
   importedLeaves,
+  leaveGaps,
   leaveTableSvg,
   parseContacts,
   tableFromRows,
@@ -151,4 +152,28 @@ test('importedLeaves makes the sheet authoritative for the students it lists', (
   // Unchanged records are not returned.
   data.leaves = importedLeaves(data, sessions, entries, 'T1');
   assert.deepEqual(importedLeaves(data, sessions, entries, 'T2'), []);
+});
+
+test('leaveGaps flags leave that stops before the end of the week', () => {
+  const slot = (id) => DEFAULT_SLOTS.find((s) => s.id === id);
+  const sessions = [
+    { date: '2026-11-13', slot: slot('eve') },
+    { date: '2026-11-14', slot: slot('am') },
+    { date: '2026-11-14', slot: slot('pm') },
+  ];
+  const entry = (studentId, ...sessionKeys) => ({ studentId, note: '', sessionKeys });
+  const gaps = leaveGaps(sessions, [
+    entry('all', '2026-11-13|eve', '2026-11-14|am', '2026-11-14|pm'),
+    entry('last', '2026-11-14|pm'),
+    entry('none'),
+    entry('fri', '2026-11-13|eve'),
+    entry('hole', '2026-11-14|pm', '2026-11-13|eve'),
+  ]);
+  assert.deepEqual(
+    gaps.map((g) => [g.studentId, g.missing.map((s) => `${s.date}|${s.slot.id}`)]),
+    [
+      ['fri', ['2026-11-14|am', '2026-11-14|pm']],
+      ['hole', ['2026-11-14|am']],
+    ],
+  );
 });

@@ -29,6 +29,7 @@ import {
   decodeText,
   fillSheet,
   importedLeaves,
+  leaveGaps,
   leaveTableSvg,
   parseContacts,
   splitSessions,
@@ -150,6 +151,12 @@ if (unknownWords.size) {
   console.warn(
     `Warning: no such session in ${week.from}..${week.to}: ${[...unknownWords].join('、')}`,
   );
+}
+
+const nameOf = new Map([...byName].map(([name, id]) => [id, name]));
+for (const { studentId, missing } of leaveGaps(sessions, [...entries.values()])) {
+  const names = missing.map((s) => `${s.date} ${sessionName(s.date, s.slot)}`).join('、');
+  console.warn(`Warning: ${nameOf.get(studentId)} 请假不连续，未请：${names}（请核对）`);
 }
 
 const changes = importedLeaves(data, sessions, [...entries.values()], now());
