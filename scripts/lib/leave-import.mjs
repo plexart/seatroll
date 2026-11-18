@@ -162,7 +162,6 @@ const HEADER_STYLE = {
   font: { ...CELL_STYLE.font, bold: true },
   fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFC0C0C0' } },
 };
-const ROW_HEIGHT = 31.3;
 
 /** Fills an ExcelJS worksheet with the table (header row first), styled like the form's export. */
 export function fillSheet(sheet, table) {
@@ -171,7 +170,6 @@ export function fillSheet(sheet, table) {
   });
   table.forEach((values, r) => {
     const row = sheet.addRow(values.map((v) => String(v ?? '')));
-    row.height = ROW_HEIGHT;
     values.forEach((_, c) => {
       Object.assign(row.getCell(c + 1), r === 0 ? HEADER_STYLE : CELL_STYLE);
     });
